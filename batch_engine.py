@@ -93,7 +93,7 @@ class BatchEngine:
                     real_result = ct
             except KeyError:
                 if is_real:
-                    real_missing = True # Label not found
+                    real_missing = True # not found
         if real_missing or real_result is None:
             raise KeyError("label not found")
         return real_result
