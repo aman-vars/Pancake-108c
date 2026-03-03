@@ -12,30 +12,6 @@ from typing import Optional
 from crypto_utils import LABEL_LENGTH
 
 
-class BatchingBenchmarkServer:
-    """
-    Wraps a Server to counts write and access calls. 
-    Used to verify exactly B server calls per query for testing.
-    """
-
-    def __init__(self, server: object) -> None:
-        self._server = server
-        self.write_count = 0
-        self.access_count = 0
-
-    def reset(self) -> None:
-        self.write_count = 0
-        self.access_count = 0
-
-    def write(self, label: bytes, ciphertext: bytes) -> None:
-        self.write_count += 1
-        self._server.write(label, ciphertext)
-
-    def access(self, label: bytes) -> bytes:
-        self.access_count += 1
-        return self._server.access(label)
-
-
 class BatchEngine:
     """
     Intercepts PUT/GET at the server boundary and expands each into

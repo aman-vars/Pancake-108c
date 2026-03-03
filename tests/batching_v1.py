@@ -9,12 +9,34 @@ import random
 import string
 import sys
 
-from batch_engine import BatchEngine, BatchingBenchmarkServer
+from batch_engine import BatchEngine
 from client import Client
 from server import Server
 
 
 BATCH_SIZE = 3
+
+
+class BatchingBenchmarkServer:
+    """Wraps a Server and counts write/access calls. Used to verify B calls per request."""
+
+    def __init__(self, server: object) -> None:
+        self._server = server
+        self.write_count = 0
+        self.access_count = 0
+
+    def reset(self) -> None:
+        self.write_count = 0
+        self.access_count = 0
+
+    def write(self, label: bytes, ciphertext: bytes) -> None:
+        self.write_count += 1
+        self._server.write(label, ciphertext)
+
+    def access(self, label: bytes) -> bytes:
+        self.access_count += 1
+        return self._server.access(label)
+
 
 
 def random_string(min_len: int = 1, max_len: int = 200) -> str:
@@ -60,19 +82,19 @@ def test_exactly_b_server_calls() -> None:
     engine = BatchEngine(counted, batch_size=BATCH_SIZE)
     client = Client(engine)
 
-    # One put -> exactly B writes, 0 accesses
+    # 1 put -> B writes, 0 accesses
     counted.reset()
     client.put("k1", "v1")
     assert counted.write_count == BATCH_SIZE, f"expected {BATCH_SIZE} writes, got {counted.write_count}"
     assert counted.access_count == 0
 
-    # One get -> exactly B accesses, 0 new writes
+    # 1 get ->  B accesses, 0 new writes
     counted.reset()
     _ = client.get("k1")
     assert counted.access_count == BATCH_SIZE, f"expected {BATCH_SIZE} accesses, got {counted.access_count}"
     assert counted.write_count == 0
 
-    # Get nonexistent: still B accesses, then client sees None
+    # Get dne: still B accesses, then client sees None
     counted.reset()
     result = client.get("nonexistent")
     assert result is None

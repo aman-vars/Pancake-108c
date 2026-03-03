@@ -76,8 +76,8 @@ Server does not learn:
 
 The **BatchEngine** layer sits between Client and Server so each logical request becomes exactly **B** server accesses (1 real + B−1 padding) (B=3 because it was used in Pancake, but it can be modified).
 
-- **BatchEngine** exposes the same interface as Server (`write`, `access`). For each logical PUT, it issues B writes (1 real + random-label/random-ciphertext padding); for each logical GET, it issues B accesses (1 real + random-label padding; KeyError on padding is ignored). Access order is randomized.
-- **BatchingBenchmarkServer** wraps a Server and counts `write`/`access` calls for verification of B total values.
+- For each logical PUT, it issues B writes (1 real + random-label/random-ciphertext padding).
+- For each logical GET, it issues B accesses (1 real + random-label padding; KeyError on padding is ignored). Access order is randomized.
 
 ---
 
