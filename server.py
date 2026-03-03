@@ -1,3 +1,4 @@
+# server.py
 """
 Server for the baseline encrypted key-value store.
 Wraps storage; exposes access and write.

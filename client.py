@@ -1,3 +1,4 @@
+# client.py
 """
 Client (trusted proxy) for the baseline encrypted key-value store.
 Performs all cryptographic operations; server only sees labels and ciphertexts.

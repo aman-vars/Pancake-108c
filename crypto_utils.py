@@ -1,3 +1,4 @@
+# crypto_utils.py
 """
 Cryptographic utilities for the baseline encrypted key-value store.
 - PRF (HMAC-SHA256) for deriving labels from plaintext keys.

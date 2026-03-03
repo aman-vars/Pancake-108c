@@ -1,3 +1,5 @@
+# storage.py
+
 """
 In-memory storage for encrypted key-value store.
 Maps opaque label -> ciphertext.
