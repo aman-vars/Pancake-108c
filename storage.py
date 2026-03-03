@@ -1,6 +1,6 @@
 """
-In-memory storage for the baseline encrypted key-value store.
-Maps opaque label (bytes) -> ciphertext (bytes).
+In-memory storage for encrypted key-value store.
+Maps opaque label -> ciphertext.
 No knowledge of plaintext keys or values.
 """
 
@@ -8,7 +8,7 @@ from typing import Optional
 
 
 class Storage:
-    """Simple in-memory dictionary: label -> ciphertext. All values are opaque bytes."""
+    """Dictionary in-memory storage: label -> ciphertext. All values are opaque bytes."""
 
     def __init__(self) -> None:
         self._store: dict[bytes, bytes] = {}

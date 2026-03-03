@@ -4,7 +4,6 @@ Performs all cryptographic operations; server only sees labels and ciphertexts.
 """
 
 from typing import Optional
-
 from crypto_utils import decrypt, encrypt, prf
 from server import Server
 
