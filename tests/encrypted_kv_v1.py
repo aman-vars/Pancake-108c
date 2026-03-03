@@ -1,6 +1,6 @@
-# test_baseline.py
+# tests/encrypted_kv_v1.py
 """
-Baseline correctness test for the encrypted key-value store.
+Test for the encrypted key-value store.
 - Verifies PRF: same key -> same label; different keys -> different labels.
 - Verifies server storage contains only opaque labels and ciphertexts.
 - Inserts 1000 keys (key_0 .. key_999) with random string values.
