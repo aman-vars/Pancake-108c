@@ -14,10 +14,8 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     
 # Fixed plaintext block size before encryption (bytes) -> padding so server cannot infer length.
 VALUE_BLOCK_SIZE = 256
-
 # AES-GCM nonce length (96 bits recommended).
 NONCE_LENGTH = 12
-
 # HMAC-SHA256 output length (used as label size).
 LABEL_LENGTH = 32
 
@@ -29,9 +27,9 @@ def _get_master_key() -> bytes:
 
 def prf(plaintext_key: bytes) -> bytes:
     """
-    Pseudo-random function: plaintext key -> fixed-length label.
+    PRF: plaintext key -> fixed-length label.
     Uses HMAC-SHA256 with the master key.
-    Same key always produces the same label; different keys produce different labels.
+    Deterministic.
     """
     
     key = _get_master_key()
@@ -40,7 +38,7 @@ def prf(plaintext_key: bytes) -> bytes:
 
 def _pad_value(plaintext: bytes) -> bytes:
     """
-    Pad plaintext to VALUE_BLOCK_SIZE for encryption.
+    Pad plaintext for encryption.
     Format: 4-byte length (big-endian) + plaintext + zero padding.
     Decoder can recover original length and strip padding.
     """

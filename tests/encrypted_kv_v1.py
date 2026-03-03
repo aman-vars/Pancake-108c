@@ -24,7 +24,8 @@ def random_string(min_len: int = 1, max_len: int = 200) -> str:
 
 
 def main() -> None:
-    # 1. Same plaintext key -> same label; different keys -> different labels
+    # 1
+    # Same plaintext key -> same label; different keys -> different labels
     a, b = b"key_a", b"key_b"
     assert prf(a) == prf(a)
     assert prf(b) == prf(b)
@@ -42,7 +43,8 @@ def main() -> None:
     for k, v in data.items():
         client.put(k, v)
 
-    # 2. Server storage: only opaque labels and ciphertexts (bytes only; no plaintext)
+    # 2
+    # Server storage: only opaque labels and ciphertexts (bytes only; no plaintext)
     store = server._storage._store
     for label, ciphertext in store.items():
         assert isinstance(label, bytes) and isinstance(ciphertext, bytes)

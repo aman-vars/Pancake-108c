@@ -1,6 +1,6 @@
 # server.py
 """
-Server for the baseline encrypted key-value store.
+Server for the encrypted key-value store.
 Wraps storage; exposes access and write.
 Server never sees plaintext keys or values—only labels and ciphertexts.
 """
