@@ -1,9 +1,9 @@
-# Pancake-Extension
+# Pancake-Extension Design Process 
 
-This project is a research-oriented reimplementation of the Pancake paper in Python. Instead of using a real distributed client–server system (e.g., Redis + Thrift), this version simulates the cryptographic securities and access-pattern behavior..
+This project is a research-oriented reimplementation of the Pancake paper in Python. Instead of using a real distributed client–server system (Redis + Thrift), this version simulates the cryptographic securities and access-pattern behavior.
 
-The goal is to:
-- Build a minimal encrypted key-value database
+Goal Checklist:
+- Build a minimal encrypted key-value database (done)
 - Rebuild Pancake incrementally 
 - Benchmark my Pancake implementation
 - Integrate an SDa blackbox extension
@@ -26,7 +26,7 @@ Client (trusted proxy)
 
 Server (untrusted storage layer)
 - Stores only opaque labels and ciphertexts
-- Has no access to plaintext keys or values
+- No access to plaintext keys or values
 - Exposes `access(label)` and `write(label, ciphertext)`
 
 Storage
@@ -35,17 +35,14 @@ Storage
 
 Note that there is no networking layer since this is meant to *mimic* client-server.
 
----
-
 ## Cryptographic Design
 
-### Labels (Searchable Index)
+### Labels
 - Derived using HMAC-SHA256 (PRF)
-- Deterministic: same plaintext key → same label
+- Deterministic: same plaintext key to same label
 - Pseudorandom: server cannot recover plaintext key
 - Fixed length (32 bytes)
-
-These labels are *opaque*: the server can store and compare them but cannot interpret or reverse them.
+- *opaque* so that the server can store and compare them but cannot learn them.
 
 ### Value Encryption
 - AES-256-GCM (authenticated encryption)
@@ -67,7 +64,7 @@ Server learns:
 - Frequency of accesses
 - Timing of operations
 
-Server does NOT learn:
+Server does not learn:
 - Plaintext keys
 - Plaintext values
 - Value lengths
@@ -75,10 +72,17 @@ Server does NOT learn:
 
 ---
 
+## Fixed-size batching
+
+The **BatchEngine** layer sits between Client and Server so each logical request becomes exactly **B** server accesses (1 real + B−1 padding) (B=3 because it was used in Pancake, but it can be modified).
+
+- **BatchEngine** exposes the same interface as Server (`write`, `access`). For each logical PUT, it issues B writes (1 real + random-label/random-ciphertext padding); for each logical GET, it issues B accesses (1 real + random-label padding; KeyError on padding is ignored). Access order is randomized.
+- **BatchingBenchmarkServer** wraps a Server and counts `write`/`access` calls for verification of B total values.
+
+---
+
 ## Testing
 
-A baseline test script (`test_baseline.py`) verifies:
-- PRF determinism
-- Encryption/decryption correctness
-- Client-server round-trip correctness
-- Insertion and retrieval of 1000 keys
+- `tests/encrypted_kv_v1.py` — PRF determinism, encryption, 1000-key insert/read.
+- `tests/batching_v1.py` — verifies exactly B server calls per request. 
+- `tests/benchmark_batching.py` - compares performance between baselines and batched version.
