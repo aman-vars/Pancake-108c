@@ -20,11 +20,10 @@ def run_benchmark(name: str, client: Client, num_ops: int) -> tuple[float, float
     Return (put_rps, put_latency_ms, get_rps, get_latency_ms).
     """
     
-    # KV
+    # KV warmup
     keys = [f"key_{i}" for i in range(num_ops)]
     values = [f"value_{i}" for i in range(num_ops)]
 
-    # Warmup
     for i in range(min(WARMUP, num_ops)):
         client.put(keys[i], values[i])
     for i in range(min(WARMUP, num_ops)):
