@@ -38,10 +38,10 @@ def main() -> None:
     assert calculator.total_accesses() == 9, f"expected 9, got {calculator.total_accesses()}"
 
     pi = calculator.get_distribution()
-    # a: 1 PUT + 3 GETs = 4, b: 1 PUT + 2 GET = 3, c: 1 PUT + 1 GET = 2
+    # a: 1P + 3G = 4, b: 1P + 2G = 3, c: 1P + 1G = 2
     assert abs(sum(pi.values()) - 1.0) < 1e-9, f"normalized distribution must sum to 1, got {sum(pi.values())}"
 
-    # Heavier keys have larger π
+    # Hotter keys have larger π
     assert pi["a"] > pi["b"], "a accessed more than b, so π(a) > π(b)"
     assert pi["b"] > pi["c"], "b accessed more than c, so π(b) > π(c)"
 
