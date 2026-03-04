@@ -17,7 +17,7 @@ if TYPE_CHECKING: # To prevent circular imports
 class Client:
     """Client: put(key, value) and get(key). All crypto is done here."""
 
-    def __init__(self, server: Server, distribution_estimator: Optional["DistributionEstimator"] = None, replication_manager: Optional["ReplicationManager"] = None) -> None:
+    def __init__(self, server: Server, distribution_estimator = None, replication_manager = None) -> None:
         self._server = server
         self._distribution_estimator = distribution_estimator
         self._replication_manager = replication_manager
@@ -33,12 +33,14 @@ class Client:
 
     def get(self, key: str) -> Optional[str]:
         """Retrieve value for key. Returns None if key is not stored."""
-        if self._distribution_estimator is not None: # Increment total for key
+        # Increment total for key
+        if self._distribution_estimator is not None: 
             self._distribution_estimator.record_access(key)
             
-        if self._replication_manager is not None: # calculate replica id for label
+        # Calculate replica id for label
+        if self._replication_manager is not None: 
             R = self._replication_manager.get_replication_factor(key)
-            replica_id = 0 if R <= 1 else random.randint(0, R-1) 
+            replica_id = random.randint(0, R-1) # id = 0 if R == 1, else id = random
         else:
             replica_id = 0
         label = make_replica_label(key, replica_id)
