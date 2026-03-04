@@ -52,9 +52,9 @@ class Client:
             self._server.write(label, ciphertext)
 
     def get(self, key: str) -> Optional[str]:
-        """Retrieve value for key. Returns None if key is not stored."""
+        """Retrieve value for key. Returns None if key is not stored. Repairs stale replica if read."""
         # Increment access total for key
-        if self._distribution_estimator is not None: 
+        if self._distribution_estimator is not None:
             self._distribution_estimator.record_access(key)
             
         # Calculate replica id for label
@@ -64,11 +64,20 @@ class Client:
         else:
             replica_id = 0
         label = make_replica_label(key, replica_id)
-        
+
         try:
             ciphertext = self._server.access(label)
         except KeyError:
             return None
-        
+
         plaintext_bytes = decrypt(ciphertext)
+
+        # If the read replica was stale, repair it and remove from UpdateCache
+        if self._update_cache is not None:
+            stale = self._update_cache.get_stale_replicas(key)
+            if replica_id in stale:
+                self._server.write(label, encrypt(plaintext_bytes))
+                self._update_cache.clear_replica(key, replica_id)
+                self._update_cache.remove_key_if_empty(key)
+
         return plaintext_bytes.decode("utf-8")
