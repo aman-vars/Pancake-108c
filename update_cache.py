@@ -15,17 +15,17 @@ class UpdateCache:
         self._cache: Dict[str, Set[int]] = {}
 
     def mark_stale(self, key: str, replica_ids: Iterable[int]) -> None:
-        """Mark the given replica_ids as stale for key."""
+        """Mark the given list of replica ids as stale for key."""
         if key not in self._cache:
             self._cache[key] = set()
         self._cache[key].update(replica_ids)
 
     def get_stale_replicas(self, key: str) -> Set[int]:
-        """Return the set of stale replica_ids for key. Empty set if key not tracked."""
+        """Return the set of stale replica ids for key. Empty set if key not tracked."""
         return set(self._cache.get(key, ()))
 
     def clear_replica(self, key: str, replica_id: int) -> None:
-        """Remove replica_id from the stale set for key."""
+        """Remove the replica id from the stale set for key."""
         if key in self._cache:
             self._cache[key].discard(replica_id)
 
