@@ -36,6 +36,16 @@ def prf(plaintext_key: bytes) -> bytes:
     return hmac.new(key, plaintext_key, hashlib.sha256).digest()
 
 
+def make_replica_label(key: str, replica_id: int) -> bytes:
+    """
+    Deterministic label for a key replica: PRF(key || replica_id).
+    Same replica_id or key always outputs the same label
+    Different replica_id or key outputs different labels.
+    """
+    replica_input = f"{key}|{replica_id}".encode("utf-8")
+    return prf(replica_input)
+
+
 def _pad_value(plaintext: bytes) -> bytes:
     """
     Pad plaintext for encryption.

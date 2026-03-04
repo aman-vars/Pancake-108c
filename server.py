@@ -24,3 +24,11 @@ class Server:
     def write(self, label: bytes, ciphertext: bytes) -> None:
         """Store ciphertext under the given label."""
         self._storage.put(label, ciphertext)
+
+    def delete(self, label: bytes) -> None:
+        """Remove the label from storage. Nothing happens if not present."""
+        self._storage.delete(label)
+
+    def size(self) -> int:
+        """Return total number of stored entries (for testing)."""
+        return self._storage.size()
