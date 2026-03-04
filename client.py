@@ -44,6 +44,9 @@ class Client:
                 stales = (set(range(R)) - {replica_id}) # Set of stale replicas
                 if stales:
                     self._update_cache.mark_stale(key, stales)
+                # Clear the updated replica from stale set (in case it was prev marked) 
+                self._update_cache.clear_replica(key, replica_id)
+                self._update_cache.remove_key_if_empty(key) 
         else:
             label = make_replica_label(key, 0)
             self._server.write(label, ciphertext)
