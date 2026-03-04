@@ -15,10 +15,7 @@ class DummyReplicaManager:
     def rebalance(self) -> None: 
         """Ensures total replicas = 2n."""
         # Calculate # of dummies needed
-        n = len(self._rm._estimator.get_distribution())
-        target = 2 * n
-        real = self._rm.total_real_replicas()
-        dummys_needed = max(0, target - real)
+        dummys_needed = self._rm.get_dummy_replica_count()
         
         current_dummy = len(self._dummy_ids)
         
