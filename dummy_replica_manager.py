@@ -27,7 +27,7 @@ class DummyReplicaManager:
         elif dummys_needed < current_dummy:
             self._remove_dummies(current_dummy - dummys_needed)
             
-    def add_dummies(self, count) -> None:
+    def _add_dummies(self, count) -> None:
         """Creates a dummy replica"""
         start = len(self._dummy_ids)
 
@@ -37,7 +37,7 @@ class DummyReplicaManager:
             self._server.write(label, ciphertext)
             self._dummy_ids.add(i)
             
-    def remove_dummies(self, count) -> None:
+    def _remove_dummies(self, count) -> None:
         """Removes a dummy replica."""
         for _ in range(count):
             rid = self._dummy_ids.pop()
