@@ -1,6 +1,6 @@
-# tests/distribution_calculator_v1.py
+# tests/distribution_estimator_v1.py
 """
-Tests for DistributionCalculator
+Tests for DistributionEstimator
 - Insert keys, access some keys multiple times.
 - Verify distribution sums to 1.
 - Verify heavier keys have larger π.
@@ -12,14 +12,14 @@ import sys
 sys.path.insert(0, ".")
 
 from client import Client
-from distribution_calculator import DistributionCalculator
+from distribution_estimator import DistributionEstimator
 from server import Server
 
 
 def main() -> None:
     server = Server()
-    calculator = DistributionCalculator()
-    client = Client(server, distribution_calculator=calculator)
+    calculator = DistributionEstimator()
+    client = Client(server, distribution_estimator=calculator)
 
     # Insert keys 'a', 'b', 'c'
     client.put("a", "v1")
@@ -50,7 +50,7 @@ def main() -> None:
     assert abs(pi["b"] - 3 / 9) < 1e-9
     assert abs(pi["c"] - 2 / 9) < 1e-9
 
-    print("DistributionCalculator: all checks passed.")
+    print("DistributionEstimator: all checks passed.")
 
 
 if __name__ == "__main__":

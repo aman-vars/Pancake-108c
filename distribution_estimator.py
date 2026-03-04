@@ -1,4 +1,4 @@
-# distribution_calculator.py
+# distribution_estimator.py
 """
 Tracks observed key access frequency for selective replication.
 """
@@ -6,7 +6,7 @@ Tracks observed key access frequency for selective replication.
 from typing import Dict
 
 
-class DistributionCalculator:
+class DistributionEstimator:
     """
     Tracks key -> access count. Increment on every logical GET or PUT.
     Provides normalized frequency π(k) and total_accesses().
