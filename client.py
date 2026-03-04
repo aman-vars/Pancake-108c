@@ -13,16 +13,18 @@ if TYPE_CHECKING: # To prevent circular imports
     from distribution_estimator import DistributionEstimator
     from replication_manager import ReplicationManager
     from update_cache import UpdateCache
+    from dummy_replica_manager import DummyReplicaManager
 
 
 class Client:
     """Client: put(key, value) and get(key). All crypto is done here."""
 
-    def __init__(self, server: Server, distribution_estimator = None, replication_manager = None, update_cache = None) -> None:
+    def __init__(self, server: Server, distribution_estimator = None, replication_manager = None, update_cache = None, dummy_manager = None) -> None:
         self._server = server
         self._distribution_estimator = distribution_estimator
         self._replication_manager = replication_manager
         self._update_cache = update_cache
+        self._dummy_manager = dummy_manager
 
     def put(self, key: str, value: str) -> None:
         """Store value under key. Writes to one replica and marks others stale when using replication."""
@@ -50,6 +52,10 @@ class Client:
         else:
             label = make_replica_label(key, 0)
             self._server.write(label, ciphertext)
+            
+        # add dummy replicas if needed
+        if self._dummy_manager is not None:
+            self._dummy_manager.rebalance()
 
     def get(self, key: str) -> Optional[str]:
         """Retrieve value for key. Returns None if key is not stored. Repairs stale replica if read."""
