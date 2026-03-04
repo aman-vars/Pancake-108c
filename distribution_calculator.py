@@ -22,7 +22,7 @@ class DistributionCalculator:
     def get_distribution(self) -> Dict[str, float]:
         """
         Returns normalized frequency π(k): key -> probability.
-        Sums to 1 over all keys. Empty dict if no accesses yet.
+        Sums to 1 over all keys. Empty if no accesses recorded.
         """
         total = self.total_accesses()
         if total == 0:
