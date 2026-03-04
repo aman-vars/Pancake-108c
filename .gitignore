@@ -1,3 +1,6 @@
 # python cache
 __pycache__/
 *.pyc
+
+# ios
+.DS_Store
