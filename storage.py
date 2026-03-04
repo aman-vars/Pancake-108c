@@ -21,3 +21,11 @@ class Storage:
     def put(self, label: bytes, ciphertext: bytes) -> None:
         """Store ciphertext under the given label."""
         self._store[label] = ciphertext
+
+    def delete(self, label: bytes) -> None:
+        """Remove the label from storage. Nothing happens if label not present."""
+        self._store.pop(label, None)
+
+    def size(self) -> int:
+        """Return the number of entries (for testing)."""
+        return len(self._store)
