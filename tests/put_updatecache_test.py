@@ -16,6 +16,7 @@ from distribution_estimator import DistributionEstimator
 from replication_manager import ReplicationManager
 from server import Server
 from update_cache import UpdateCache
+from client import Client
 
 
 def replica_has_data(server: Server, key: str, replica_id: int) -> bool:
@@ -52,13 +53,14 @@ def main() -> None:
         replication_manager=replication_manager,
         update_cache=update_cache,
     )
+    client = Client(proxy)
 
     # Setup
-    proxy.put("hot", "hot_value")
-    proxy.put("cold", "cold_value")
+    client.put("hot", "hot_value")
+    client.put("cold", "cold_value")
     for _ in range(20):
-        proxy.get("hot")
-    proxy.get("cold")
+        client.get("hot")
+    client.get("cold")
 
     R_hot = replication_manager.get_replication_factor("hot")
     R_cold = replication_manager.get_replication_factor("cold")
@@ -71,7 +73,7 @@ def main() -> None:
     assert count_hot == 1, "each PUT writes to one replica; after one put to hot, exactly one replica has data"
 
     # Do another PUT so UpdateCache gets stale replicas
-    proxy.put("hot", "v1")
+    client.put("hot", "v1")
 
     # 2
     # Verify UpdateCache contains the correct stale replicas 
@@ -87,7 +89,7 @@ def main() -> None:
     # Multiple PUTs update different replicas over time
     written_ids = set()
     for _ in range(150):
-        proxy.put("hot", "v2")
+        client.put("hot", "v2")
         w = replica_with_value(server, "hot", R_hot, "v2")
         assert w is not None
         written_ids.add(w)
@@ -96,14 +98,14 @@ def main() -> None:
     # 4
     # System still returns correct values 
     # GET may hit any replica but retval must be the one we stored
-    proxy.put("hot", "final_hot")
-    proxy.put("cold", "final_cold")
+    client.put("hot", "final_hot")
+    client.put("cold", "final_cold")
     for _ in range(30):
-        val = proxy.get("hot")
+        val = client.get("hot")
         if val is not None:
             assert val in ("final_hot", "v2"), "returned value must be one we put"
     for _ in range(10):
-        assert proxy.get("cold") == "final_cold"
+        assert client.get("cold") == "final_cold"
 
     # 5
     # UpdateCache helpers

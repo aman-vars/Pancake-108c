@@ -16,6 +16,7 @@ from dummy_replica_manager import DummyReplicaManager
 from replication_manager import ReplicationManager
 from server import Server
 from update_cache import UpdateCache
+from client import Client
 
 
 def assert_invariant(server, rm, msg=""):
@@ -38,21 +39,22 @@ def main():
         update_cache=cache,
         dummy_manager=dummy_mgr,
     )
+    client = Client(proxy)
 
     # 1. Total entries = 2n after each PUT
-    proxy.put("a", "1")
+    client.put("a", "1")
     assert_invariant(server, rm, "after put(a)")
-    proxy.put("b", "2")
+    client.put("b", "2")
     assert_invariant(server, rm, "after put(b)")
-    proxy.put("c", "3")
+    client.put("c", "3")
     assert_invariant(server, rm, "after put(c)")
 
     # 2. Replicas grow: n=3 => 6 entries; skew so R(a) grows, then rebalance
     for _ in range(50):
-        proxy.get("a")
-    proxy.get("b")
-    proxy.get("c")
-    proxy.put("a", "10")
+        client.get("a")
+    client.get("b")
+    client.get("c")
+    client.put("a", "10")
     assert_invariant(server, rm, "after skew + put(a)")
 
     # 3. After skew + put, total still 2n (rebalance uses server.size() so overwrites are handled)
@@ -60,11 +62,11 @@ def main():
 
     # 4. Repeated rebalances: multiple PUTs, invariant holds each time
     for i in range(10):
-        proxy.put("b", f"b{i}")
+        client.put("b", f"b{i}")
         assert_invariant(server, rm, f"after repeated put(b) #{i}")
 
     # 5. Add another key; n and 2n increase
-    proxy.put("d", "4")
+    client.put("d", "4")
     assert_invariant(server, rm, "after put(d)")
 
     # 6. Idempotent rebalance: calling rebalance again leaves 2n unchanged

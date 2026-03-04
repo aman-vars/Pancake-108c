@@ -15,6 +15,7 @@ from distribution_estimator import DistributionEstimator
 from replication_manager import ReplicationManager
 from server import Server
 from update_cache import UpdateCache
+from client import Client
 
 
 def main():
@@ -24,26 +25,27 @@ def main():
     rm = ReplicationManager(est)
     cache = UpdateCache()
     proxy = Proxy(server, distribution_estimator=est, replication_manager=rm, update_cache=cache)
+    client = Client(proxy)
 
     # Write key multiple times so we get R>=2 and several replicas
-    proxy.put("k", "v0")
-    proxy.put("other", "x")
+    client.put("k", "v0")
+    client.put("other", "x")
     for _ in range(30):
-        proxy.get("k")
-    proxy.get("other")
+        client.get("k")
+    client.get("other")
     R = rm.get_replication_factor("k")
     assert R >= 2, "Replication factor logic incorrect"
 
     # 1
     # Ensure stale replicas appear 
-    proxy.put("k", "v1")
+    client.put("k", "v1")
     stale_before = cache.get_stale_replicas("k")
     assert len(stale_before) >= 1, "after put, at least one replica should be marked stale"
 
     # 2
     # Perform reads; each read of a stale replica repairs it
     for _ in range(100):
-        val = proxy.get("k")
+        val = client.get("k")
         assert val is not None and val in ("v0", "v1"), "reads must return a value we wrote"
 
     # 3

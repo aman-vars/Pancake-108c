@@ -17,6 +17,7 @@ import sys
 from proxy import Proxy
 from crypto_utils import prf
 from server import Server
+from client import Client
 
 
 def random_string(min_len: int = 1, max_len: int = 200) -> str:
@@ -35,6 +36,7 @@ def main() -> None:
 
     server = Server()
     proxy = Proxy(server)
+    client = Client(proxy)
 
     n = 1000
     keys = [f"key_{i}" for i in range(n)]
@@ -43,7 +45,7 @@ def main() -> None:
 
     # Insert all
     for k, v in data.items():
-        proxy.put(k, v)
+        client.put(k, v)
 
     # 2
     # Server storage: only opaque labels and ciphertexts (bytes only; no plaintext)
@@ -55,12 +57,12 @@ def main() -> None:
     read_order = list(data.keys())
     random.shuffle(read_order)
     for k in read_order:
-        got = proxy.get(k)
+        got = client.get(k)
         assert got is not None, f"Missing key: {k}"
         assert got == data[k], f"Mismatch for {k}: expected {data[k]!r}, got {got!r}"
 
     # Nonexistent key returns None
-    assert proxy.get("key_nonexistent") is None
+    assert client.get("key_nonexistent") is None
 
     print("All baseline tests passed.")
     sys.exit(0)

@@ -12,25 +12,27 @@ sys.path.insert(0, ".")
 from proxy import Proxy
 from distribution_estimator import DistributionEstimator
 from server import Server
+from client import Client
 
 
 def main() -> None:
     server = Server()
     calculator = DistributionEstimator()
     proxy = Proxy(server, distribution_estimator=calculator)
+    client = Client(proxy)
 
     # Insert keys 'a', 'b', 'c'
-    proxy.put("a", "v1")
-    proxy.put("b", "v2")
-    proxy.put("c", "v3")
+    client.put("a", "v1")
+    client.put("b", "v2")
+    client.put("c", "v3")
 
     # Access some keys multiple times (3 'a', 2 'b', 1 'c')
-    proxy.get("a")
-    proxy.get("a")
-    proxy.get("a")
-    proxy.get("b")
-    proxy.get("b")
-    proxy.get("c")
+    client.get("a")
+    client.get("a")
+    client.get("a")
+    client.get("b")
+    client.get("b")
+    client.get("c")
 
     # total_accesses: 3 PUTs + 6 GETs = 9
     assert calculator.total_accesses() == 9, f"expected 9, got {calculator.total_accesses()}"

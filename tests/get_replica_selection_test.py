@@ -12,6 +12,7 @@ from proxy import Proxy
 from distribution_estimator import DistributionEstimator
 from replication_manager import ReplicationManager
 from server import Server
+from client import Client
 
 
 def main() -> None:
@@ -23,14 +24,15 @@ def main() -> None:
         distribution_estimator=estimator,
         replication_manager=replication_manager,
     )
+    client = Client(proxy)
 
     # 1
     # Skewed access
-    proxy.put("hot", "hot_value")
-    proxy.put("cold", "cold_value")
+    client.put("hot", "hot_value")
+    client.put("cold", "cold_value")
     for _ in range(20):
-        proxy.get("hot")
-    proxy.get("cold")
+        client.get("hot")
+    client.get("cold")
 
     R_hot = replication_manager.get_replication_factor("hot")
     R_cold = replication_manager.get_replication_factor("cold")
@@ -40,13 +42,13 @@ def main() -> None:
     # 2
     # GET works correctly when R(k) = 1 (always uses replica 0)
     for _ in range(10):
-        val = proxy.get("cold")
+        val = client.get("cold")
         assert val == "cold_value", "GET with R=1 must always return stored value"
 
     # 2
     # When R(k) > 1, different replicas are selected across multiple GETs.
     # Only replica 0 is stored and the rest are empty
-    results = [proxy.get("hot") for _ in range(80)]
+    results = [client.get("hot") for _ in range(80)]
     got_value = sum(1 for r in results if r is not None)
     got_none = sum(1 for r in results if r is None)
     assert got_value > 0, "sometimes replica 0 is selected and we get the value"
@@ -55,11 +57,11 @@ def main() -> None:
     # 3
     # Verify returned values are always correct whenever we get a value
     for _ in range(50):
-        val = proxy.get("hot")
+        val = client.get("hot")
         if val is not None:
             assert val == "hot_value", "returned value must match stored value"
     for _ in range(20):
-        val = proxy.get("cold")
+        val = client.get("cold")
         assert val == "cold_value", "cold key value must always be correct"
 
     print("GET replica selection: all checks passed.")
