@@ -9,7 +9,7 @@ from typing import Dict
 class DistributionEstimator:
     """
     Tracks key -> access count. Increment on every logical GET or PUT.
-    Provides normalized frequency π(k) and total_accesses().
+    Provides normalized frequency π'(k) and total_accesses().
     """
 
     def __init__(self) -> None:
@@ -21,7 +21,7 @@ class DistributionEstimator:
 
     def get_distribution(self) -> Dict[str, float]:
         """
-        Returns normalized frequency π(k): key -> probability.
+        Returns normalized frequency π'(k): key -> probability.
         Sums to 1 over all keys. Empty if no accesses recorded.
         """
         total = self.total_accesses()

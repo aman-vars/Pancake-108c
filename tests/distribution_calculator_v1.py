@@ -3,7 +3,7 @@
 Tests for DistributionEstimator
 - Insert keys, access some keys multiple times.
 - Verify distribution sums to 1.
-- Verify heavier keys have larger π.
+- Verify heavier keys have larger π'.
 """
 
 import sys
@@ -41,9 +41,9 @@ def main() -> None:
     # a: 1P + 3G = 4, b: 1P + 2G = 3, c: 1P + 1G = 2
     assert abs(sum(pi.values()) - 1.0) < 1e-9, f"normalized distribution must sum to 1, got {sum(pi.values())}"
 
-    # Hotter keys have larger π
-    assert pi["a"] > pi["b"], "a accessed more than b, so π(a) > π(b)"
-    assert pi["b"] > pi["c"], "b accessed more than c, so π(b) > π(c)"
+    # Hotter keys have larger π'
+    assert pi["a"] > pi["b"], "a accessed more than b, so π'(a) > π'(b)"
+    assert pi["b"] > pi["c"], "b accessed more than c, so π'(b) > π'(c)"
 
     # Exact expected frequencies: 4/9, 3/9, 2/9
     assert abs(pi["a"] - 4 / 9) < 1e-9
