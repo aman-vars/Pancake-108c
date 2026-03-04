@@ -1,7 +1,8 @@
 # replication_manager.py
 """
-Computes replication factors R(k) from 
+Computes replication factors R(k) from
 access distribution (using DistributionEstimator).
+Total replicas is 2n; dummy replicas pad to 2n.
 """
 
 import math
@@ -13,10 +14,28 @@ class ReplicationManager:
     """
     Given a DistributionEstimator, computes per-key replication factor:
     n = # of distinct keys, alpha = 1/n, R(k) = ceil(π'(k) / alpha).
+    Total replicas = 2n; dummy replicas = 2n - real replicas.
     """
 
     def __init__(self, estimator: DistributionEstimator) -> None:
         self._estimator = estimator
+
+    def _num_keys(self) -> int:
+        """Number of distinct keys observed (n)."""
+        return len(self._estimator.get_distribution())
+
+    def get_total_replica_target(self) -> int:
+        """Total number of replicas the server should store: 2n."""
+        return 2 * self._num_keys()
+
+    def get_dummy_replica_count(self) -> int:
+        """
+        Number of dummy replicas (for dummy key D) needed so that
+        total_real_replicas + dummy_replicas == 2n.
+        """
+        target = self.get_total_replica_target()
+        real = self.total_real_replicas()
+        return max(0, target - real)
 
     def get_replication_factor(self, key: str) -> int:
         """Replication factor for key. 0 if key was never observed."""
