@@ -27,4 +27,23 @@ class DummyReplicaManager:
         elif dummys_needed < current_dummy:
             self._remove_dummies(current_dummy - dummys_needed)
             
-    
+    def add_dummies(self, count) -> None:
+        """Creates a dummy replica"""
+        start = len(self._dummy_ids)
+
+        for i in range(start, start + count):
+            label = make_replica_label(DUMMY_KEY, i)
+            ciphertext = os.urandom(256)
+            self._server.write(label, ciphertext)
+            self._dummy_ids.add(i)
+            
+    def remove_dummies(self, count) -> None:
+        """Removes a dummy replica."""
+        for _ in range(count):
+            rid = self._dummy_ids.pop()
+            label = make_replica_label(DUMMY_KEY, rid)
+
+            try:
+                del self._server._storage._store[label]
+            except KeyError:
+                pass
