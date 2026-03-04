@@ -10,7 +10,7 @@ import random
 import sys
 sys.path.insert(0, ".")
 
-from client import Client
+from proxy import Proxy
 from distribution_estimator import DistributionEstimator
 from dummy_replica_manager import DummyReplicaManager
 from replication_manager import ReplicationManager
@@ -31,7 +31,7 @@ def main():
     rm = ReplicationManager(est)
     cache = UpdateCache()
     dummy_mgr = DummyReplicaManager(server, rm)
-    client = Client(
+    proxy = Proxy(
         server,
         distribution_estimator=est,
         replication_manager=rm,
@@ -40,19 +40,19 @@ def main():
     )
 
     # 1. Total entries = 2n after each PUT
-    client.put("a", "1")
+    proxy.put("a", "1")
     assert_invariant(server, rm, "after put(a)")
-    client.put("b", "2")
+    proxy.put("b", "2")
     assert_invariant(server, rm, "after put(b)")
-    client.put("c", "3")
+    proxy.put("c", "3")
     assert_invariant(server, rm, "after put(c)")
 
     # 2. Replicas grow: n=3 => 6 entries; skew so R(a) grows, then rebalance
     for _ in range(50):
-        client.get("a")
-    client.get("b")
-    client.get("c")
-    client.put("a", "10")
+        proxy.get("a")
+    proxy.get("b")
+    proxy.get("c")
+    proxy.put("a", "10")
     assert_invariant(server, rm, "after skew + put(a)")
 
     # 3. After skew + put, total still 2n (rebalance uses server.size() so overwrites are handled)
@@ -60,11 +60,11 @@ def main():
 
     # 4. Repeated rebalances: multiple PUTs, invariant holds each time
     for i in range(10):
-        client.put("b", f"b{i}")
+        proxy.put("b", f"b{i}")
         assert_invariant(server, rm, f"after repeated put(b) #{i}")
 
     # 5. Add another key; n and 2n increase
-    client.put("d", "4")
+    proxy.put("d", "4")
     assert_invariant(server, rm, "after put(d)")
 
     # 6. Idempotent rebalance: calling rebalance again leaves 2n unchanged

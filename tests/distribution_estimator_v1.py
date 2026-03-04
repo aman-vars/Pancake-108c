@@ -9,7 +9,7 @@ Tests for DistributionEstimator
 import sys
 sys.path.insert(0, ".")
 
-from client import Client
+from proxy import Proxy
 from distribution_estimator import DistributionEstimator
 from server import Server
 
@@ -17,20 +17,20 @@ from server import Server
 def main() -> None:
     server = Server()
     calculator = DistributionEstimator()
-    client = Client(server, distribution_estimator=calculator)
+    proxy = Proxy(server, distribution_estimator=calculator)
 
     # Insert keys 'a', 'b', 'c'
-    client.put("a", "v1")
-    client.put("b", "v2")
-    client.put("c", "v3")
+    proxy.put("a", "v1")
+    proxy.put("b", "v2")
+    proxy.put("c", "v3")
 
     # Access some keys multiple times (3 'a', 2 'b', 1 'c')
-    client.get("a")
-    client.get("a")
-    client.get("a")
-    client.get("b")
-    client.get("b")
-    client.get("c")
+    proxy.get("a")
+    proxy.get("a")
+    proxy.get("a")
+    proxy.get("b")
+    proxy.get("b")
+    proxy.get("c")
 
     # total_accesses: 3 PUTs + 6 GETs = 9
     assert calculator.total_accesses() == 9, f"expected 9, got {calculator.total_accesses()}"

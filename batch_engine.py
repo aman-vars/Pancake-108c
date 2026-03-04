@@ -1,7 +1,7 @@
 # batch_engine.py
 """
 Fixed-size batching layer for the encrypted key-value store.
-Sits between Client and Server: each logical PUT/GET is expanded into
+Sits between Proxy and Server: each logical PUT/GET is expanded into
 exactly B server accesses (1 real + (B-1) padding).
 """
 
@@ -16,7 +16,7 @@ class BatchEngine:
     """
     Intercepts PUT/GET at the server boundary and expands each into
     exactly B server accesses: 1 real + (B-1) padding.
-    Client sees the same interface as Server (write, access); only
+    Proxy sees the same interface as Server (write, access); only
     the underlying server sees B accesses per logical operation.
     """
 

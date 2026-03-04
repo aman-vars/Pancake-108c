@@ -10,7 +10,7 @@ import random
 import sys
 sys.path.insert(0, ".")
 
-from client import Client
+from proxy import Proxy
 from crypto_utils import decrypt, make_replica_label
 from distribution_estimator import DistributionEstimator
 from replication_manager import ReplicationManager
@@ -46,7 +46,7 @@ def main() -> None:
     estimator = DistributionEstimator()
     replication_manager = ReplicationManager(estimator)
     update_cache = UpdateCache()
-    client = Client(
+    proxy = Proxy(
         server,
         distribution_estimator=estimator,
         replication_manager=replication_manager,
@@ -54,11 +54,11 @@ def main() -> None:
     )
 
     # Setup
-    client.put("hot", "hot_value")
-    client.put("cold", "cold_value")
+    proxy.put("hot", "hot_value")
+    proxy.put("cold", "cold_value")
     for _ in range(20):
-        client.get("hot")
-    client.get("cold")
+        proxy.get("hot")
+    proxy.get("cold")
 
     R_hot = replication_manager.get_replication_factor("hot")
     R_cold = replication_manager.get_replication_factor("cold")
@@ -71,7 +71,7 @@ def main() -> None:
     assert count_hot == 1, "each PUT writes to one replica; after one put to hot, exactly one replica has data"
 
     # Do another PUT so UpdateCache gets stale replicas
-    client.put("hot", "v1")
+    proxy.put("hot", "v1")
 
     # 2
     # Verify UpdateCache contains the correct stale replicas 
@@ -87,7 +87,7 @@ def main() -> None:
     # Multiple PUTs update different replicas over time
     written_ids = set()
     for _ in range(150):
-        client.put("hot", "v2")
+        proxy.put("hot", "v2")
         w = replica_with_value(server, "hot", R_hot, "v2")
         assert w is not None
         written_ids.add(w)
@@ -96,14 +96,14 @@ def main() -> None:
     # 4
     # System still returns correct values 
     # GET may hit any replica but retval must be the one we stored
-    client.put("hot", "final_hot")
-    client.put("cold", "final_cold")
+    proxy.put("hot", "final_hot")
+    proxy.put("cold", "final_cold")
     for _ in range(30):
-        val = client.get("hot")
+        val = proxy.get("hot")
         if val is not None:
             assert val in ("final_hot", "v2"), "returned value must be one we put"
     for _ in range(10):
-        assert client.get("cold") == "final_cold"
+        assert proxy.get("cold") == "final_cold"
 
     # 5
     # UpdateCache helpers

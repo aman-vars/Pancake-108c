@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, ".")
 import time
 from server import Server
-from client import Client
+from proxy import Proxy
 from batch_engine import BatchEngine
 
 BATCH_SIZE = 3
@@ -16,7 +16,7 @@ NUM_OPS = 10_000
 WARMUP = 1_000
 
 
-def run_benchmark(name: str, client: Client, num_ops: int) -> tuple[float, float, float, float]:
+def run_benchmark(name: str, proxy: Proxy, num_ops: int) -> tuple[float, float, float, float]:
     """
     Run PUT then GET workload.
     Return (put_rps, put_latency_ms, get_rps, get_latency_ms).
@@ -27,14 +27,14 @@ def run_benchmark(name: str, client: Client, num_ops: int) -> tuple[float, float
     values = [f"value_{i}" for i in range(num_ops)]
 
     for i in range(min(WARMUP, num_ops)):
-        client.put(keys[i], values[i])
+        proxy.put(keys[i], values[i])
     for i in range(min(WARMUP, num_ops)):
-        _ = client.get(keys[i])
+        _ = proxy.get(keys[i])
 
     # Measure PUTs
     start = time.perf_counter()
     for i in range(num_ops):
-        client.put(keys[i], values[i])
+        proxy.put(keys[i], values[i])
     put_elapsed = time.perf_counter() - start
     put_rps = num_ops / put_elapsed
     put_latency_ms = (put_elapsed / num_ops) * 1000
@@ -42,7 +42,7 @@ def run_benchmark(name: str, client: Client, num_ops: int) -> tuple[float, float
     # Measure GETs
     start = time.perf_counter()
     for i in range(num_ops):
-        _ = client.get(keys[i])
+        _ = proxy.get(keys[i])
     get_elapsed = time.perf_counter() - start
     get_rps = num_ops / get_elapsed
     get_latency_ms = (get_elapsed / num_ops) * 1000
@@ -55,16 +55,16 @@ def main() -> None:
     print(f"Operations per phase: {NUM_OPS}, warmup: {WARMUP}")
     print()
 
-    # Baseline: Client -> Server
+    # Baseline: Proxy -> Server
     server_baseline = Server()
-    client_baseline = Client(server_baseline)
-    put_rps_b, put_lat_b, get_rps_b, get_lat_b = run_benchmark("baseline", client_baseline, NUM_OPS)
+    proxy_baseline = Proxy(server_baseline)
+    put_rps_b, put_lat_b, get_rps_b, get_lat_b = run_benchmark("baseline", proxy_baseline, NUM_OPS)
 
-    # Batched: Client -> BatchEngine -> Server
+    # Batched: Proxy -> BatchEngine -> Server
     server_batched = Server()
     engine = BatchEngine(server_batched, batch_size=BATCH_SIZE)
-    client_batched = Client(engine)
-    put_rps_e, put_lat_e, get_rps_e, get_lat_e = run_benchmark("batched", client_batched, NUM_OPS)
+    proxy_batched = Proxy(engine)
+    put_rps_e, put_lat_e, get_rps_e, get_lat_e = run_benchmark("batched", proxy_batched, NUM_OPS)
 
     # Print comparisons
     print("Results:")

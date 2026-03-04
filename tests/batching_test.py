@@ -12,7 +12,7 @@ import string
 import sys
 
 from batch_engine import BatchEngine
-from client import Client
+from proxy import Proxy
 from server import Server
 
 
@@ -48,11 +48,11 @@ def random_string(min_len: int = 1, max_len: int = 200) -> str:
 
 
 def test_correctness() -> None:
-    """Batched client must behave like baseline."""
+    """Batched proxy must behave like baseline."""
     server = Server()
     counted = BatchingBenchmarkServer(server)
     engine = BatchEngine(counted, batch_size=BATCH_SIZE)
-    client = Client(engine)
+    proxy = Proxy(engine)
 
     n = 1000
     keys = [f"key_{i}" for i in range(n)]
@@ -60,7 +60,7 @@ def test_correctness() -> None:
     data = dict(zip(keys, values))
 
     for k, v in data.items():
-        client.put(k, v)
+        proxy.put(k, v)
 
     store = server._storage._store
     for label, ciphertext in store.items():
@@ -69,11 +69,11 @@ def test_correctness() -> None:
     read_order = list(data.keys())
     random.shuffle(read_order)
     for k in read_order:
-        got = client.get(k)
+        got = proxy.get(k)
         assert got is not None, f"Missing key: {k}"
         assert got == data[k], f"Mismatch for {k}: expected {data[k]!r}, got {got!r}"
 
-    assert client.get("key_nonexistent") is None
+    assert proxy.get("key_nonexistent") is None
     print("  correctness: passed (1000 keys insert + random read + nonexistent)")
 
 
@@ -82,23 +82,23 @@ def test_exactly_b_server_calls() -> None:
     server = Server()
     counted = BatchingBenchmarkServer(server)
     engine = BatchEngine(counted, batch_size=BATCH_SIZE)
-    client = Client(engine)
+    proxy = Proxy(engine)
 
     # 1 put -> B writes, 0 accesses
     counted.reset()
-    client.put("k1", "v1")
+    proxy.put("k1", "v1")
     assert counted.write_count == BATCH_SIZE, f"expected {BATCH_SIZE} writes, got {counted.write_count}"
     assert counted.access_count == 0
 
     # 1 get ->  B accesses, 0 new writes
     counted.reset()
-    _ = client.get("k1")
+    _ = proxy.get("k1")
     assert counted.access_count == BATCH_SIZE, f"expected {BATCH_SIZE} accesses, got {counted.access_count}"
     assert counted.write_count == 0
 
-    # Get dne: still B accesses, then client sees None
+    # Get dne: still B accesses, then proxy sees None
     counted.reset()
-    result = client.get("nonexistent")
+    result = proxy.get("nonexistent")
     assert result is None
     assert counted.access_count == BATCH_SIZE
     assert counted.write_count == 0
