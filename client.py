@@ -15,6 +15,6 @@ class Client:
         """PUT query sent to proxy to execute"""
         return self._proxy.put(key, value)
     
-    def get(self, key: str, value: str):
+    def get(self, key: str):
         """GET query sent to proxy to execute."""
-        return self._proxy.get(key, value)
+        return self._proxy.get(key)
