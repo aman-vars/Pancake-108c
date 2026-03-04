@@ -5,7 +5,7 @@ Performs all cryptographic operations; server only sees labels and ciphertexts.
 """
 
 from typing import Optional, TYPE_CHECKING
-from crypto_utils import decrypt, encrypt, prf
+from crypto_utils import decrypt, encrypt, make_replica_label
 from server import Server
 
 if TYPE_CHECKING: # To prevent circular imports
@@ -23,8 +23,7 @@ class Client:
         """Store value under key. Converts key to label, pads and encrypts value."""
         if self._distribution_estimator is not None: # Increment total for key
             self._distribution_estimator.record_access(key)
-        key_bytes = key.encode("utf-8")
-        label = prf(key_bytes)
+        label = make_replica_label(key, 0)
         value_bytes = value.encode("utf-8")
         ciphertext = encrypt(value_bytes)
         self._server.write(label, ciphertext)
@@ -33,8 +32,7 @@ class Client:
         """Retrieve value for key. Returns None if key is not stored."""
         if self._distribution_estimator is not None: # Increment total for key
             self._distribution_estimator.record_access(key)
-        key_bytes = key.encode("utf-8")
-        label = prf(key_bytes)
+        label = make_replica_label(key, 0)
         try:
             ciphertext = self._server.access(label)
         except KeyError:
