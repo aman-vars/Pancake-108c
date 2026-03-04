@@ -15,7 +15,7 @@ Goal Checklist:
 
 This project is built on top of an encrypted key–value system with modularities between client and server.
 
-### Architecture
+### Architecture   
 
 Client 
 - Represents the user/application interacting with the system
@@ -128,8 +128,6 @@ Ensures the invariant of Pancake: the number of total replicas must be `2n` at a
 - If the number of real replicas is less than  `2n`, the proxy inserts dummy replicas using a dedicated dummy key.
 - These dummy keys store random ciphertext indistinguishable from real values 
 
-
---- 
 
 # Testing
 
