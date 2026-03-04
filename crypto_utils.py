@@ -10,7 +10,7 @@ import hashlib
 import hmac
 import os
 import struct
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM # type:ignore
     
 # Fixed plaintext block size before encryption (bytes) -> padding so server cannot infer length.
 VALUE_BLOCK_SIZE = 256
