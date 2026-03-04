@@ -1,7 +1,7 @@
 import os
 from crypto_utils import make_replica_label
 
-DUMMY_KEY = " dummy "
+DUMMY_KEY = "*DUMMY*"
 
 
 class DummyReplicaManager:
