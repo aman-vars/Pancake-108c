@@ -20,13 +20,9 @@ class ReplicationManager:
     def __init__(self, estimator: DistributionEstimator) -> None:
         self._estimator = estimator
 
-    def _num_keys(self) -> int:
-        """Number of distinct keys observed (n)."""
-        return len(self._estimator.get_distribution())
-
     def get_total_replica_target(self) -> int:
         """Total number of replicas the server should store: 2n."""
-        return 2 * self._num_keys()
+        return 2 * self._estimator.num_keys()
 
     def get_dummy_replica_count(self) -> int:
         """
@@ -49,7 +45,7 @@ class ReplicationManager:
         """
         
         pi = self._estimator.get_distribution()
-        n = len(pi)
+        n = len(pi) # Same as num_keys()
         if n == 0:
             return {}
         alpha = 1.0 / n
