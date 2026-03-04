@@ -8,6 +8,8 @@ Test for the encrypted key-value store.
 - Prints confirmation if all tests pass.
 """
 
+import sys
+sys.path.insert(0, ".")
 import random
 import string
 import sys

@@ -5,6 +5,8 @@ Tests for fixed-size batching.
 - Each logical GET triggers B server accesses.
 """
 
+import sys
+sys.path.insert(0, ".")
 import random
 import string
 import sys

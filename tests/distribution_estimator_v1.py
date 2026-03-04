@@ -7,8 +7,6 @@ Tests for DistributionEstimator
 """
 
 import sys
-
-# Allow importing from project root
 sys.path.insert(0, ".")
 
 from client import Client

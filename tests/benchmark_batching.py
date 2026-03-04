@@ -4,6 +4,8 @@ Benchmark comparing baseline encrypted KV vs batched encrypted KV.
 Reports requests/second (rps) and latency/request for PUT + GET.
 """
 
+import sys
+sys.path.insert(0, ".")
 import time
 from server import Server
 from client import Client
