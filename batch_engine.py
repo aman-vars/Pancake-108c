@@ -54,7 +54,7 @@ class BatchEngine:
         of padding label being real label).
         """
         
-        slots: list[tuple[bytes, bool]] = [(label, True)]
+        slots = [(label, True)]
         # Pad, then shuffle
         for _ in range(self._B - 1): 
             slots.append((self._random_label(), False))
