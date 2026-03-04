@@ -41,7 +41,7 @@ def replica_with_value(server: Server, key: str, R: int, value: str):
 
 
 def main() -> None:
-    random.seed(42)
+    random.seed(1)
     server = Server()
     estimator = DistributionEstimator()
     replication_manager = ReplicationManager(estimator)
