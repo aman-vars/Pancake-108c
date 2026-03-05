@@ -8,12 +8,14 @@ import os
 from crypto_utils import make_replica_label
 
 DUMMY_KEY = "*DUMMY*"
-# Match real ciphertext length: nonce(12) + encrypted_block(256) + tag(16)
-CIPHERTEXT_LENGTH = 284
+CIPHERTEXT_LENGTH = 284 # Match real ciphertext length -> nonce(12) + encrypted_block(256) + tag(16)
 
 
 class DummyReplicaManager:
-    """Ensures total server entries = 2n. Adds or removes dummy replicas as needed."""
+    """
+    INVARIANT: total replicas must equal 2n.
+    Adds or removes dummy replicas to ensure invariant.
+    """
 
     def __init__(self, server, replication_manager) -> None:
         self._server = server
@@ -27,9 +29,8 @@ class DummyReplicaManager:
         if current_size < target: # Need to add dummies
             self._add_dummies(target - current_size)
         elif current_size > target: # Need to remove dummies
-            to_remove = current_size - target
-            self._remove_dummies(min(to_remove, len(self._dummy_ids)))
-
+            self._remove_dummies(current_size - target)
+            
     def _add_dummies(self, count: int) -> None:
         """Append `count` new dummy replicas and insert them."""
         next_id = (max(self._dummy_ids) + 1) if self._dummy_ids else 0
@@ -44,6 +45,6 @@ class DummyReplicaManager:
         for _ in range(count):
             if not self._dummy_ids:
                 break
-            rid = self._dummy_ids.pop()
-            label = make_replica_label(DUMMY_KEY, rid)
+            replica_id = self._dummy_ids.pop()
+            label = make_replica_label(DUMMY_KEY, replica_id)
             self._server.delete(label)
