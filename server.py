@@ -1,15 +1,15 @@
 # server.py
 """
 Server for the encrypted key-value store.
-Wraps storage; exposes access and write.
-Server never sees plaintext keys or values—only labels and ciphertexts.
+Wraps storage (so exposes access and write).
+Server never sees plaintext keys or values, only labels and ciphertexts.
 """
 
 from storage import Storage
 
 
 class Server:
-    """Wraps storage. Exposes access(label) and write(label, ciphertext)."""
+    """Wraps storage class with basic functions."""
 
     def __init__(self) -> None:
         self._storage = Storage()
@@ -26,9 +26,9 @@ class Server:
         self._storage.put(label, ciphertext)
 
     def delete(self, label: bytes) -> None:
-        """Remove the label from storage. Nothing happens if not present."""
+        """Remove the label from storage. Ignore if not found."""
         self._storage.delete(label)
 
     def size(self) -> int:
-        """Return total number of stored entries (for testing)."""
+        """Returns total number of stored entries."""
         return self._storage.size()

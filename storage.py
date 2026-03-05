@@ -15,7 +15,7 @@ class Storage:
         self._store: dict[bytes, bytes] = {}
 
     def get(self, label: bytes) -> Optional[bytes]:
-        """Return ciphertext for the given label, or None if not found."""
+        """Return ciphertext for the given label. If not found, return None."""
         return self._store.get(label)
 
     def put(self, label: bytes, ciphertext: bytes) -> None:
@@ -23,9 +23,9 @@ class Storage:
         self._store[label] = ciphertext
 
     def delete(self, label: bytes) -> None:
-        """Remove the label from storage. Nothing happens if label not present."""
+        """Remove the label from storage. Ignore if label not found."""
         self._store.pop(label, None)
 
     def size(self) -> int:
-        """Return the number of entries (for testing)."""
+        """Return the number of entries."""
         return len(self._store)
