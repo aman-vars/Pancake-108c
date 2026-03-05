@@ -1,6 +1,7 @@
 # update_cache.py
 """
-UpdateCache tracks which replica_ids per key are stale (meaning they need to be updated).
+Tracks which replica ids are stale for a key.
+Mapped via key -> set of stale replica ids.
 """
 
 from typing import Dict, Iterable, Set
@@ -27,7 +28,7 @@ class UpdateCache:
     def clear_replica(self, key: str, replica_id: int) -> None:
         """Remove the replica id from the stale set for key."""
         if key in self._cache:
-            self._cache[key].discard(replica_id)
+            self._cache[key].discard(replica_id) # Ignores KeyError automatically (idempotent)
 
     def remove_key_if_empty(self, key: str) -> None:
         """If key exists and has no stale replicas, remove the entry."""

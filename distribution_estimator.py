@@ -8,7 +8,7 @@ from typing import Dict
 
 class DistributionEstimator:
     """
-    Tracks key -> access count. Increment on every logical GET or PUT.
+    Tracks key -> access count. Increment on every GET or PUT.
     Provides normalized frequency π'(k) and total_accesses().
     """
 

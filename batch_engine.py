@@ -8,7 +8,6 @@ exactly B server accesses (1 real + (B-1) padding).
 import os
 import random
 from typing import Optional
-
 from crypto_utils import LABEL_LENGTH
 
 
