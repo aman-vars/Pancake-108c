@@ -35,10 +35,10 @@ class DummyReplicaManager:
         """Append `count` new dummy replicas and insert them."""
         next_id = (max(self._dummy_ids) + 1) if self._dummy_ids else 0
         for i in range(count):
-            rid = next_id + i
-            label = make_replica_label(DUMMY_KEY, rid)
+            replica_id = next_id + i
+            label = make_replica_label(DUMMY_KEY, replica_id)
             self._server.write(label, os.urandom(CIPHERTEXT_LENGTH))
-            self._dummy_ids.append(rid)
+            self._dummy_ids.append(replica_id)
 
     def _remove_dummies(self, count: int) -> None:
         """Remove count dummy replicas from server."""
