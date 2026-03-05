@@ -35,4 +35,4 @@ class DistributionEstimator:
     
     def num_keys(self) -> int:
         """Total number of unique keys recorded."""
-        return len(self.get_distribution())
+        return len(self._counts)
