@@ -1,4 +1,4 @@
-#tests/fake_distribution_test.py
+# tests/fake_distribution_test.py
 """
 Tests for fake distribution sampling.
 - Only existing replicas are allowed to be sampled.
@@ -8,6 +8,7 @@ Tests for fake distribution sampling.
 
 import sys
 sys.path.insert(0, ".")
+from crypto_utils import LABEL_LENGTH, make_replica_label
 from distribution_estimator import DistributionEstimator
 from replication_manager import ReplicationManager
 from fake_distribution import FakeDistributionManager
@@ -38,7 +39,7 @@ def main():
         
     
     # 2
-    # Fake labels should be valid PRF labels
+    # Fake labels should be valid PRF labels (fixed length, and one of the replica labels)
     estimator2 = DistributionEstimator()
     for _ in range(10):
         estimator2.record_access("user")
@@ -49,7 +50,10 @@ def main():
     label = fdm2.sample_fake_label()
 
     assert isinstance(label, bytes)
-    assert len(label) > 0
+    assert len(label) == LABEL_LENGTH
+    factors2 = rm2.get_all_replication_factors()
+    valid_labels = {make_replica_label(k, rid) for k, R in factors2.items() for rid in range(R)}
+    assert label in valid_labels
     
     
     # 3
