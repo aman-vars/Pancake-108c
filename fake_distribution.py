@@ -23,7 +23,7 @@ class FakeDistributionManager:
                 replicas.append( (key, replica_id) )
         return replicas
     
-    def sample_fake_replicas(self) -> tuple[str, int]:
+    def sample_fake_replica(self) -> tuple[str, int]:
         """Randomly select 1 replica from all replicas."""
         replicas = self._all_replicas()
         if not replicas:
@@ -32,5 +32,5 @@ class FakeDistributionManager:
         
     def sample_fake_label(self) -> bytes:
         """Return the storage label for a sampled fake replica."""
-        key, replica_id = self.sample_fake_replicas()
+        key, replica_id = self.sample_fake_replica()
         return make_replica_label(key, replica_id)
