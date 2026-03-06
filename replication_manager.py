@@ -44,6 +44,10 @@ class ReplicationManager:
         pi = self._estimator.get_distribution()
         return {k : self.get_replication_factor(k) for k in pi}
 
+    def get_distribution(self) -> Dict[str, float]:
+        """Return observed key distribution π(k) from the estimator."""
+        return self._estimator.get_distribution()
+
     def total_real_replicas(self) -> int:
         """Sum of R(k) over all keys."""
         return sum(self.get_all_replication_factors().values())
