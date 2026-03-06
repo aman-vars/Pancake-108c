@@ -6,6 +6,7 @@ Generates fake replica accesses to pad batches.
 from crypto_utils import make_replica_label
 from replication_manager import ReplicationManager
 import random
+from typing import Tuple
 
 class FakeDistributionManager:
     """Generates fake replica accesses."""
@@ -23,7 +24,7 @@ class FakeDistributionManager:
                 replicas.append( (key, replica_id) )
         return replicas
     
-    def sample_fake_replicas(self) -> (str, int):
+    def sample_fake_replicas(self) -> Tuple[str, int]:
         """Randomly select 1 replica out of all them."""
         replicas = self._all_replicas()
         if not replicas:
