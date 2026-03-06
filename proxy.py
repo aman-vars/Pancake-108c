@@ -43,7 +43,7 @@ class Proxy:
         # Calculate replica id for label
         if self._replication_manager:
             R = self._replication_manager.get_replication_factor(key)
-            replica_id = random.randint(0, R-1)
+            replica_id = 0 if R == 0 else random.randint(0, R-1) # R == 0 if new key
             label = make_replica_label(key, replica_id)
             # Put in server
             self._server.write(label, ciphertext)
@@ -72,7 +72,7 @@ class Proxy:
         # Calculate replica id for label
         if self._replication_manager: 
             R = self._replication_manager.get_replication_factor(key)
-            replica_id = random.randint(0, R-1) 
+            replica_id = 0 if R == 0 else random.randint(0, R-1)
         else:
             replica_id = 0
         label = make_replica_label(key, replica_id)
