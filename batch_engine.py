@@ -1,8 +1,8 @@
 # batch_engine.py
 """
-Fixed-size batching layer for the encrypted key-value store.
-Sits between Proxy and Server: each logical PUT/GET is expanded into
-exactly B server accesses (1 real + (B-1) padding).
+Fixed-size batching layer.
+Expands each PUT/GET query into B server accesses.
+1 real + (B-1) padding.
 """
 
 import os
@@ -13,17 +13,16 @@ from crypto_utils import LABEL_LENGTH
 
 class BatchEngine:
     """
-    Intercepts PUT/GET at the server boundary and expands each into
-    exactly B server accesses: 1 real + (B-1) padding.
-    Proxy sees the same interface as Server (write, access); only
-    the underlying server sees B accesses per logical operation.
+    Expands each PUT/GET into B server accesses, with B usually being 3.
+    1 real + (B-1) padding.
     """
 
-    def __init__(self, server: object, batch_size: int = 3) -> None:
+    def __init__(self, server, fake_distribution_manager = None, batch_size=3) -> None:
         if batch_size < 1:
             raise ValueError("batch_size must be >= 1")
         self._server = server
-        self._B = batch_size
+        self._batch_size = batch_size
+        self._fake_distribution_manager = fake_distribution_manager
 
     def _random_label(self) -> bytes:
         """Return a random label (not real key)."""
@@ -31,14 +30,14 @@ class BatchEngine:
 
     def write(self, label: bytes, ciphertext: bytes) -> None:
         """
-        Perform 1 real write plus (B-1) padding writes so the server
-        sees exactly B writes. Padded writes uses random labels and random
-        ciphertext; only the real write persists meaningful data.
+        Performs 1 real write and (B-1) padding writes so the server sees B writes. 
+        Padded writes uses random labels and random ciphertext.
+        Only the real write persists meaningful data.
         """
         
-        slots: list[tuple[bytes, bytes]] = [(label, ciphertext)]
+        slots = [(label, ciphertext)]
         # Pad, then shuffle
-        for _ in range(self._B - 1):
+        for _ in range(self._batch_size - 1):
             slots.append((self._random_label(), os.urandom(len(ciphertext))))
         random.shuffle(slots)
         # Write to server
@@ -47,28 +46,33 @@ class BatchEngine:
 
     def access(self, label: bytes) -> bytes:
         """
-        Perform 1 real access plus (B-1) padding accesses so the server
-        sees exactly B accesses. Padded accesses uses random labels and 
-        ignores KeyErrors. Returns only the real result (ignoring the case
-        of padding label being real label).
+        Perform 1 real access and (B-1) padding accesses so the server sees B accesses.
+        Padding labels are from real replica labels if using FakeDistributionManager.
+        Otherwise, random labels are generated.
         """
         
-        slots = [(label, True)]
+        slots = [(label, True)] # First label is real
+        
         # Pad, then shuffle
-        for _ in range(self._B - 1): 
-            slots.append((self._random_label(), False))
+        for _ in range(self._batch_size - 1): 
+            if self._fake_distribution_manager: # Pad using real replicas
+                fake_label = self._fake_distribution_manager.sample_fake_label()
+            else:
+                fake_label = self._random_label()
+            slots.append( (fake_label, False) )
         random.shuffle(slots) 
-        real_result: Optional[bytes] = None
-        real_missing = False
+        
         # Search for real label
+        real_result = None # Will store ciphertext of label to be accessed
+        is_real_missing = False
         for lbl, is_real in slots: 
             try:
-                ct = self._server.access(lbl)
+                ciphertext = self._server.access(lbl)
                 if is_real:
-                    real_result = ct
+                    real_result = ciphertext
             except KeyError:
                 if is_real:
-                    real_missing = True # not found
-        if real_missing or real_result is None:
-            raise KeyError("label not found")
+                    is_real_missing = True # Not found
+        if is_real_missing or real_result is None:
+            raise KeyError("Label not found.")
         return real_result
