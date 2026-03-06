@@ -6,16 +6,15 @@ Generates fake replica accesses to pad batches.
 from crypto_utils import make_replica_label
 from replication_manager import ReplicationManager
 import random
-from typing import Tuple
 
 class FakeDistributionManager:
     """Generates fake replica accesses."""
     
-    def __init__(self, replication_manager: ReplicationManager = None) -> None:
+    def __init__(self, replication_manager: ReplicationManager) -> None:
         self._replication_manager = replication_manager
     
     
-    def _all_replicas(self):
+    def _all_replicas(self) -> list[tuple[str, int]]:
         """Returns a list of all (key, replica_id) pairs currently present."""
         replicas = []
         replication_factors = self._replication_manager.get_all_replication_factors()
@@ -24,8 +23,8 @@ class FakeDistributionManager:
                 replicas.append( (key, replica_id) )
         return replicas
     
-    def sample_fake_replicas(self) -> Tuple[str, int]:
-        """Randomly select 1 replica out of all them."""
+    def sample_fake_replicas(self) -> tuple[str, int]:
+        """Randomly select 1 replica from all replicas."""
         replicas = self._all_replicas()
         if not replicas:
             raise RuntimeError("No replicas available for fake sampling")
@@ -34,4 +33,4 @@ class FakeDistributionManager:
     def sample_fake_label(self) -> bytes:
         """Return the storage label for a sampled fake replica."""
         key, replica_id = self.sample_fake_replicas()
-        return make_replica_label(key,replica_id)
+        return make_replica_label(key, replica_id)
