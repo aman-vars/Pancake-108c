@@ -1,14 +1,14 @@
-# Pancake-Extension Design Process 
+# Design Process 
 
 This project is a research-oriented reimplementation of the Pancake paper in Python. Instead of using a real distributed client–server system (Redis + Thrift), this version *simulates* the cryptographic securities and access-pattern behavior.
 
 Goal Checklist:
 - Build a minimal encrypted key-value database (done)
-- Rebuild Pancake incrementally 
+- Rebuild Pancake incrementally (done)
 - Benchmark my Pancake implementation
-- Integrate an SDa blackbox extension
-- Analyze performance results
-- Compare the performance differences and create a report
+- Integrate an SDa blackbox extension (optional) 
+- Analyze performance results (optional)
+- Write a report on my process and findings
 
 
 ## Encrypted Key–Value Store
@@ -55,7 +55,7 @@ Note that there is no networking layer. Instead, the trusted proxy calls server 
 - Random 96-bit nonce per encryption
 - Ciphertext format: `nonce || ciphertext || tag`
 
-### Fixed-Length Padding
+### Length Padding
 To prevent length leakage:
 - Values are padded to a fixed block size (256 bytes)
 - Format: `4-byte length || plaintext || zero padding`
@@ -77,10 +77,14 @@ Server does not learn:
 
 ## Fixed-Size Batching
 
-The **BatchEngine** layer sits between Client and Server so each logical request becomes exactly **B** server accesses (1 real + B−1 padding) (B=3 because it was used in Pancake, but it can be modified).
+The BatchEngine layer expands each request into *B* server accesses.
 
-- For each logical PUT, it issues B writes (1 real + random-label/random-ciphertext padding).
-- For each logical GET, it issues B accesses (1 real + random-label padding; KeyError on padding is ignored). Access order is randomized.
+- For this experiment, I used *B = 3* as it was used in the paper. 
+- For systems that prioritize security more, B could be set to be higher.
+- For each PUT, Pancake issues 1 real write and B-1 fake writes (random labels and random ciphertext).
+- For each GET, Pancake issues 1 real access and B-1 fake accesses (random labels).
+
+The order of these requests are randomized so the server cannot determine which is the real one. Batching ensures that real operations are indistinguishable from fake ones. 
 
 
 ## Selective Replication
@@ -129,6 +133,32 @@ Ensures the invariant of Pancake: the number of total replicas must be `2n` at a
 - These dummy keys store random ciphertext indistinguishable from real values 
 
 
+## Fake Query Distribution
+
+Even with replication, the server still learns information from how often replicas are accessed. Hot keys will appear more often, even if their accesses are spread out across many replicas. 
+
+To prevent this leakage, Pancake uses frequency smoothing. The goal is to ensure that each access (even across replicas) appears uniformly to the server. This essentially guarantees that cold replicas will be sampled more for padding in the batch engine. 
+
+### Smoothing Equation
+
+I achieved this by using the Pancake smoothing equation:
+
+`(delta * π(k) / R(k)) + ((1 - delta) * π_f(k, j)) = 1/N`
+
+- `delta` is the probability that the access is real
+- `π(k)` is the observed access probability of `k`
+- `R(k)` is the replication factor for `k`
+- `π_f(k, j)` is the fake access probability of replica `j` of `k`
+- `N` is the number of total real replicas
+
+### FakeDistributionManager
+
+- Computes the weights for each replica using the equation.
+- Padding accesses are sampled from this weighted distribution now. Before, they were sampled randomly.
+- Upholds the security guarantee that the server observes a completely uniform access frequency distribution.
+
+
+
 # Testing
 
 - `tests/encrypted_kv_v1.py` — checks determinism and cryptographic design of labels and data communication.
@@ -141,5 +171,6 @@ Ensures the invariant of Pancake: the number of total replicas must be `2n` at a
 - `tests/put_updatecache_test.py` - ensures that PUTs on existing values (updating) works. Relies on Update Cache
 - `tests/replica_repair_test.py` - verifies that stale replicas are repaired on GET queries and removed from Update Cache.
 - `tests/dummy_replica_creation_test.py` - ensures invariant that server always stores `2n` replicas.
-
+- `tests/fake_distribution_smoothing_test.py` - checks that the replica weights generated for fake distribution sampling makes sense.
+- `tests/fake_distribution_test.py` - checks that the replicas picked make sense.
 
