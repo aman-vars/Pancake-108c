@@ -9,6 +9,7 @@ import os
 import random
 from typing import Optional
 from crypto_utils import LABEL_LENGTH
+from dummy_replica_manager import CIPHERTEXT_LENGTH
 
 
 class BatchEngine:
@@ -62,6 +63,8 @@ class BatchEngine:
             slots.append( (fake_label, False) )
         random.shuffle(slots) 
         
+        read_results = [] # Stores ciphertexts to write back
+        
         # Search for real label
         real_result = None # Will store ciphertext of label to be accessed
         is_real_missing = False
@@ -70,9 +73,18 @@ class BatchEngine:
                 ciphertext = self._server.access(lbl)
                 if is_real:
                     real_result = ciphertext
+                read_results.append((lbl, ciphertext))
             except KeyError:
                 if is_real:
                     is_real_missing = True # Not found
+                read_results.append((lbl, None))
         if is_real_missing or real_result is None:
             raise KeyError("Label not found.")
+        
+        # Write to mask operation
+        for lbl, ct in read_results:
+            if ct is None: # Fake label miss -> random ciphertext
+                ct = os.urandom(CIPHERTEXT_LENGTH)
+            self._server.write(lbl, ct)
+                
         return real_result
