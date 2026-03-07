@@ -61,19 +61,6 @@ To prevent length leakage:
 - Format: `4-byte length || plaintext || zero padding`
 - Decryption restores original plaintext safely
 
-### Security Properties 
-
-Server learns:
-- Access pattern (same label reused)
-- Frequency of accesses
-- Timing of operations
-
-Server does not learn:
-- Plaintext keys
-- Plaintext values
-- Value lengths
-- Encryption keys
-
 
 ## Fixed-Size Batching
 
