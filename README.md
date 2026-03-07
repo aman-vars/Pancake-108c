@@ -19,7 +19,7 @@ This project is built on top of an encrypted key–value system with modularitie
 
 Client 
 - Represents the user/application interacting with the system
-- Exposes `put(key, value)` and `get(key)`
+- Provides `put(key, value)` and `get(key)`
 - Forwards queries to the trusted proxy
 
 Proxy (trusted)
@@ -32,7 +32,7 @@ Proxy (trusted)
 Server (untrusted storage layer)
 - Stores only opaque labels and ciphertexts
 - No access to plaintext keys or values
-- Exposes `access(label)` and `write(label, ciphertext)`
+- Provides `access(label)` and `write(label, ciphertext)`
 
 Storage
 - In-memory dictionary mapping `label -> ciphertext`
@@ -86,6 +86,8 @@ The BatchEngine layer expands each request into *B* server accesses.
 
 The order of these requests are randomized so the server cannot determine which is the real one. Batching ensures that real operations are indistinguishable from fake ones. 
 
+Another security weakness that Pancake protects against is the server being able to decipher the operation type for a batch of queries. `access(label)` and `write(label, ciphertext)` is visible to the server. After integrating read-then-write logic, accesses now also write back to the server, so the format is the same for both queries.
+
 
 ## Selective Replication
 
@@ -118,7 +120,6 @@ Each replica appears independent to the server.
 
 - For GETs, one of the `R(k)` replicas are selected and returned at random.
 - For PUTs, only one random replica `r` is updated per write. The rest are marked as stale.
-
 
 ### Update Cache
 Tracks which replicas are stale.
@@ -173,4 +174,4 @@ I achieved this by using the Pancake smoothing equation:
 - `tests/dummy_replica_creation_test.py` - ensures invariant that server always stores `2n` replicas.
 - `tests/fake_distribution_smoothing_test.py` - checks that the replica weights generated for fake distribution sampling makes sense.
 - `tests/fake_distribution_test.py` - checks that the replicas picked make sense.
-
+- `tests/read_then_write_test.py` - verifies that server can't determine operation type when we use read-then-write logic.
