@@ -89,7 +89,7 @@ Example access counts:
 - u3 -> 5
 
 Estimated distribution:
-- π(u1) = .80
+- π(u1) = .85
 - π(u2) = .10
 - π(u3) = .05
 
@@ -98,7 +98,7 @@ Replication factors are determined with the formula: `R(k) = ceil(π(k)/a)`
 where `n` is the number of distinct keys and `a` is `1/n`
 
 Calculated Replication factor:
-- R(u1) = ceil(.80/.33) = 3
+- R(u1) = ceil(.85/.33) = 3
 - R(u2) = ceil(.10/.33) = 1
 - R(u3) = ceil(.05/.33) = 1
 
