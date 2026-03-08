@@ -73,7 +73,7 @@ The BatchEngine layer expands each request into *B* server accesses.
 
 The order of these requests are randomized so the server cannot determine which is the real one. Batching ensures that real operations are indistinguishable from fake ones. 
 
-Another security weakness that Pancake protects against is the server being able to decipher the operation type for a batch of queries. `access(label)` and `write(label, ciphertext)` is visible to the server. After integrating read-then-write logic, accesses now also write back to the server, so the format is the same for both queries.
+Another security weakness that Pancake protects against is the server being able to decipher the operation type for a batch of queries. `access(label)` and `write(label, ciphertext)` is visible to the server. After integrating read-then-write logic, accesses now also write back to the server, and writes also access from the server. This way the operation type is masked to the server since it sees `access(label)` and then `write(label, ciphertext)` for each batch.
 
 
 ## Selective Replication
