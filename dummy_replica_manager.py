@@ -48,3 +48,7 @@ class DummyReplicaManager:
             replica_id = self._dummy_ids.pop()
             label = make_replica_label(DUMMY_KEY, replica_id)
             self._server.delete(label)
+
+    def get_dummy_replica_ids(self) -> list[int]:
+        """Returns the list of dummy replica IDs."""
+        return list(self._dummy_ids)

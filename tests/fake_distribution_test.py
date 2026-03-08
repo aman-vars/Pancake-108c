@@ -4,6 +4,7 @@ Tests for fake distribution sampling.
 - Only existing replicas are allowed to be sampled.
 - Fake labels must be valid.
 - Instance when no replicas available
+- With dummy_replica_manager, dummy replicas are included and N=2n.
 """
 
 import sys
@@ -12,6 +13,8 @@ from crypto_utils import LABEL_LENGTH, make_replica_label
 from distribution_estimator import DistributionEstimator
 from replication_manager import ReplicationManager
 from fake_distribution import FakeDistributionManager
+from dummy_replica_manager import DUMMY_KEY, DummyReplicaManager
+from server import Server
 
 
 def main():
@@ -65,10 +68,34 @@ def main():
     try:
         fdm3.sample_fake_replica()
     except RuntimeError:
-        print("Fake Distribution Manager: All tests passed.")
-        return
+        pass
+    else:
+        raise AssertionError("Expected RuntimeError when no replicas exist")
 
-    raise AssertionError("Expected RuntimeError when no replicas exist")
+    # 4
+    # Include dummy replicas in fake distribution sampling 
+    server = Server()
+    est4 = DistributionEstimator()
+    est4.record_access("x")
+    est4.record_access("y")
+    rm4 = ReplicationManager(est4)
+    dummy_mgr = DummyReplicaManager(server, rm4)
+    dummy_mgr.rebalance()
+    fdm4 = FakeDistributionManager(rm4, batch_size=3, dummy_replica_manager=dummy_mgr)
+    replicas4, weights4 = fdm4.get_fake_distribution()
+    assert len(replicas4) == rm4.get_total_replica_target()
+    assert sum(weights4) - 1.0 < 1e-6
+    dummy_replicas = [(k, r) for k, r in replicas4 if k == DUMMY_KEY]
+    real_replicas = [(k, r) for k, r in replicas4 if k != DUMMY_KEY]
+    assert len(dummy_replicas) == rm4.get_dummy_replica_count()
+    assert len(dummy_replicas) + len(real_replicas) == len(replicas4)
+    sampled_keys = set()
+    for _ in range(200):
+        key, _ = fdm4.sample_fake_replica()
+        sampled_keys.add(key)
+    assert DUMMY_KEY in sampled_keys, "dummy replicas should be sampled when in fake distribution"
+
+    print("Fake Distribution Manager: All tests passed.")
 
 
 
