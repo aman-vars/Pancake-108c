@@ -118,7 +118,14 @@ Tracks which replicas are stale.
 Ensures the invariant of Pancake: the number of total replicas must be `2n` at all times. This prevents the server from learning how many real replicas exist.
 
 - If the number of real replicas is less than  `2n`, the proxy inserts dummy replicas using a dedicated dummy key.
-- These dummy keys store random ciphertext indistinguishable from real values 
+- These dummy keys store random ciphertext indistinguishable from real values
+- When a key becomes hotter and its replication factor increases, dummy replicas are convertde into real replicas using *replica swapping* so the total number of server entries remains `2n`. Inserting a new entry would break the invariant and leak information.
+
+Replica swapping:
+- A dummy replica is chosen.
+- The dummmy replica is overwritten with the ciphertext for the new replica.
+- Dummy Replica Manager records the mapping so that the replica corresponds to the dummy label.
+- If accessing a replica that has been swapped, the Manager checks the records to return the proper label.
 
 
 ## Fake Query Distribution
