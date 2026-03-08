@@ -31,19 +31,37 @@ class BatchEngine:
 
     def write(self, label: bytes, ciphertext: bytes) -> None:
         """
-        Performs 1 real write and (B-1) padding writes so the server sees B writes. 
-        Padded writes uses random labels and random ciphertext.
-        Only the real write persists meaningful data.
+        First performs B reads, then B writes. 1 of the writes are real
+        and the other (B-1) writes are padding. Padded writes use random labels 
+        and random ciphertext. Real write gets the given ciphertext.
         """
-        
-        slots = [(label, ciphertext)]
+        slots = [(label, True)]  
         # Pad, then shuffle
         for _ in range(self._batch_size - 1):
-            slots.append((self._random_label(), os.urandom(len(ciphertext))))
+            if self._fake_distribution_manager:
+                fake_label = self._fake_distribution_manager.sample_fake_label()
+            else:
+                fake_label = self._random_label()
+            slots.append((fake_label, False))
         random.shuffle(slots)
+
+        # Read to mask operation
+        read_results = []
+        for lbl, is_real in slots:
+            try:
+                ct = self._server.access(lbl)
+                read_results.append((lbl, ct, is_real))
+            except KeyError:
+                read_results.append((lbl, None, is_real))
+
         # Write to server
-        for lbl, ct in slots: 
-            self._server.write(lbl, ct)
+        for lbl, read_ct, is_real in read_results:
+            if is_real:
+                self._server.write(lbl, ciphertext)
+            else:
+                if read_ct is None: 
+                    read_ct = os.urandom(CIPHERTEXT_LENGTH)
+                self._server.write(lbl, read_ct)
 
     def access(self, label: bytes) -> bytes:
         """

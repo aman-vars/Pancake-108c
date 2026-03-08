@@ -80,18 +80,18 @@ def test_correctness() -> None:
 
 
 def test_exactly_b_server_calls() -> None:
-    """Each logical put triggers B writes; each logical get triggers B accesses + B writes (read-then-write)."""
+    """PUT and GET both use read-then-write: B accesses then B writes (operation type masked)."""
     server = Server()
     counted = BatchingBenchmarkServer(server)
     engine = BatchEngine(counted, batch_size=BATCH_SIZE)
     proxy = Proxy(engine)
     client = Client(proxy)
 
-    # 1 put -> B writes, 0 accesses
+    # 1 put -> B accesses then B writes
     counted.reset()
     client.put("k1", "v1")
+    assert counted.access_count == BATCH_SIZE, f"expected {BATCH_SIZE} accesses, got {counted.access_count}"
     assert counted.write_count == BATCH_SIZE, f"expected {BATCH_SIZE} writes, got {counted.write_count}"
-    assert counted.access_count == 0
 
     # 1 get -> B accesses then B writes
     counted.reset()
