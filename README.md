@@ -125,7 +125,7 @@ Ensures the invariant of Pancake: the number of total replicas must be `2n` at a
 
 Even with replication, the server still learns information from how often replicas are accessed. Hot keys will appear more often, even if their accesses are spread out across many replicas. 
 
-To prevent this leakage, Pancake uses frequency smoothing. The goal is to ensure that each access (even across replicas) appears uniformly to the server. This essentially guarantees that cold replicas will be sampled more for padding in the batch engine. 
+To prevent this leakage, Pancake uses frequency smoothing. The goal is to ensure that each access (even across replicas) appears uniformly to the server. This essentially guarantees that cold replicas, especially dummy keys, will be sampled more for padding in the batch engine. 
 
 ### Smoothing Equation
 
@@ -137,7 +137,8 @@ I achieved this by using the Pancake smoothing equation:
 - `π(k)` is the observed access probability of `k`
 - `R(k)` is the replication factor for `k`
 - `π_f(k, j)` is the fake access probability of replica `j` of `k`
-- `N` is the number of total real replicas
+- `N` is the number of total replicas
+- For dummy keys, `π(k) = 0` because they aren't ever accessed.
 
 ### FakeDistributionManager
 
