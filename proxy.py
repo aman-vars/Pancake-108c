@@ -40,11 +40,18 @@ class Proxy:
         value_bytes = value.encode("utf-8")
         ciphertext = encrypt(value_bytes)
 
-        # Calculate replica id for label
+        # Choose replica randomly 
         if self._replication_manager:
+            if self._dummy_manager: # Ensure 2n
+                self._dummy_manager.rebalance()
             R = self._replication_manager.get_replication_factor(key)
             replica_id = 0 if R == 0 else random.randint(0, R-1) # R == 0 if new key
-            label = make_replica_label(key, replica_id)
+            if self._dummy_manager:
+                if replica_id > 0: # Ensure replica exists
+                    self._dummy_manager.ensure_replica_exists(key, replica_id, ciphertext)
+                label = self._dummy_manager.get_label(key, replica_id)
+            else:
+                label = make_replica_label(key, replica_id)
             # Put in server
             self._server.write(label, ciphertext)
             # Mark stale replicas
@@ -54,14 +61,14 @@ class Proxy:
                     self._update_cache.mark_stale(key, stales)
                 # Clear the updated replica from stale set (in case it was previously marked) 
                 self._update_cache.clear_replica(key, replica_id)
-                self._update_cache.remove_key_if_empty(key) 
+                self._update_cache.remove_key_if_empty(key)
         else:
             label = make_replica_label(key, 0)
             self._server.write(label, ciphertext)
-            
-        # Add dummy replicas if needed
-        if self._dummy_manager:
+
+        if self._dummy_manager: # Ensure 2n
             self._dummy_manager.rebalance()
+
 
     def get(self, key: str) -> Optional[str]:
         """Retrieve value for key, or None. Repairs stale replica if read."""
@@ -69,19 +76,47 @@ class Proxy:
         if self._distribution_estimator:
             self._distribution_estimator.record_access(key)
             
-        # Calculate replica id for label
-        if self._replication_manager: 
+        # Choose replica randomly
+        if self._replication_manager:
             R = self._replication_manager.get_replication_factor(key)
             replica_id = 0 if R == 0 else random.randint(0, R-1) # if R == 0 -> key shouldn't exist 
+            if self._dummy_manager: # Get correct label
+                label = self._dummy_manager.get_label(key, replica_id) 
+            else:
+                label = make_replica_label(key, replica_id)
         else:
             replica_id = 0
-        label = make_replica_label(key, replica_id)
+            label = make_replica_label(key, 0)
 
-        # Search for label
+        # Try to read ciphertext
         try:
             ciphertext = self._server.access(label)
         except KeyError:
-            return None
+            # Try to recover by iterating through other dummy replicas of the same key
+            # Recovery only possible if key has multiple replicas
+            if self._replication_manager and self._dummy_manager and R > 1:
+                swapped = False # True if replica id recovered
+                for j in range(R):
+                    if j == replica_id: # Skip original replica id that was not found
+                        continue
+                    try: 
+                        # If successful, then another replica exists 
+                        # read the ciphertext of the other dummy replica and write missing replica by replica swapping
+                        other_label = self._dummy_manager.get_label(key, j)
+                        ct = self._server.access(other_label)
+                        self._dummy_manager.ensure_replica_exists(key, replica_id, ct)
+                        label = self._dummy_manager.get_label(key, replica_id)
+                        ciphertext = self._server.access(label) # Exists now
+                        swapped = True
+                        break
+                    except KeyError: 
+                        continue
+                if not swapped: # Recovery failed -> None
+                    return None
+            else:
+                return None
+
+        # Decrypt
         plaintext_bytes = decrypt(ciphertext)
 
         # If the read replica was stale, repair it
