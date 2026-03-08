@@ -80,7 +80,7 @@ def test_correctness() -> None:
 
 
 def test_exactly_b_server_calls() -> None:
-    """Each logical put triggers B writes; each logical get triggers B accesses."""
+    """Each logical put triggers B writes; each logical get triggers B accesses + B writes (read-then-write)."""
     server = Server()
     counted = BatchingBenchmarkServer(server)
     engine = BatchEngine(counted, batch_size=BATCH_SIZE)
@@ -93,13 +93,13 @@ def test_exactly_b_server_calls() -> None:
     assert counted.write_count == BATCH_SIZE, f"expected {BATCH_SIZE} writes, got {counted.write_count}"
     assert counted.access_count == 0
 
-    # 1 get ->  B accesses, 0 new writes
+    # 1 get -> B accesses then B writes
     counted.reset()
     _ = client.get("k1")
     assert counted.access_count == BATCH_SIZE, f"expected {BATCH_SIZE} accesses, got {counted.access_count}"
-    assert counted.write_count == 0
+    assert counted.write_count == BATCH_SIZE, f"expected {BATCH_SIZE} writes (read-then-write), got {counted.write_count}"
 
-    # Get dne: still B accesses, then proxy sees None
+    # Get dne: B accesses, 0 writes (KeyError before write-back)
     counted.reset()
     result = client.get("nonexistent")
     assert result is None
