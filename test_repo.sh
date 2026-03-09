@@ -2,7 +2,7 @@
 
 echo ""
 echo "======================================"
-echo " Running Pancake Test Suite"
+echo " Running Pancake Tests (NOT BENCHMARK)"
 echo "======================================"
 echo ""
 
