@@ -10,6 +10,7 @@ import sys
 sys.path.insert(0, ".")
 
 from proxy import Proxy
+from batch_engine import BatchEngine
 from distribution_estimator import DistributionEstimator
 from server import Server
 from client import Client
@@ -17,8 +18,9 @@ from client import Client
 
 def main() -> None:
     server = Server()
+    engine = BatchEngine(server)
     calculator = DistributionEstimator()
-    proxy = Proxy(server, distribution_estimator=calculator)
+    proxy = Proxy(engine, distribution_estimator=calculator)
     client = Client(proxy)
 
     # Insert keys 'a', 'b', 'c'

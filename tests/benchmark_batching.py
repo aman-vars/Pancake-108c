@@ -56,9 +56,10 @@ def main() -> None:
     print(f"Operations per phase: {NUM_OPS}, warmup: {WARMUP}")
     print()
 
-    # Baseline: Proxy -> Server
+    # Baseline: Proxy -> BatchEngine(batch_size=1) -> Server
     server_baseline = Server()
-    proxy_baseline = Proxy(server_baseline)
+    engine_baseline = BatchEngine(server_baseline, batch_size=1)
+    proxy_baseline = Proxy(engine_baseline)
     client_baseline = Client(proxy_baseline)
     put_rps_b, put_lat_b, get_rps_b, get_lat_b = run_benchmark("baseline", client_baseline, NUM_OPS)
 

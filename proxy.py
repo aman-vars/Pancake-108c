@@ -23,8 +23,8 @@ class Proxy:
     Handles encryption and Pancake properties for security.
     """ 
 
-    def __init__(self, server: Server, distribution_estimator = None, replication_manager = None, update_cache = None, dummy_manager = None) -> None:
-        self._server = server
+    def __init__(self, storage_backend, distribution_estimator=None, replication_manager=None, update_cache=None, dummy_manager=None) -> None:
+        self._server = storage_backend
         self._distribution_estimator = distribution_estimator
         self._replication_manager = replication_manager
         self._update_cache = update_cache

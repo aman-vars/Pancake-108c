@@ -10,6 +10,7 @@ import sys
 sys.path.insert(0, ".")
 
 from proxy import Proxy
+from batch_engine import BatchEngine
 from crypto_utils import decrypt, make_replica_label
 from distribution_estimator import DistributionEstimator
 from replication_manager import ReplicationManager
@@ -21,10 +22,11 @@ from client import Client
 def main():
     random.seed(42)
     server = Server()
+    engine = BatchEngine(server)
     est = DistributionEstimator()
     rm = ReplicationManager(est)
     cache = UpdateCache()
-    proxy = Proxy(server, distribution_estimator=est, replication_manager=rm, update_cache=cache)
+    proxy = Proxy(engine, distribution_estimator=est, replication_manager=rm, update_cache=cache)
     client = Client(proxy)
 
     # Write key multiple times so we get R>=2 and several replicas

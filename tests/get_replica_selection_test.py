@@ -9,6 +9,7 @@ Uses skewed access so at least one key has R(k) > 1.
 import sys
 sys.path.insert(0, ".")
 from proxy import Proxy
+from batch_engine import BatchEngine
 from distribution_estimator import DistributionEstimator
 from replication_manager import ReplicationManager
 from server import Server
@@ -17,13 +18,10 @@ from client import Client
 
 def main() -> None:
     server = Server()
+    engine = BatchEngine(server)
     estimator = DistributionEstimator()
     replication_manager = ReplicationManager(estimator)
-    proxy = Proxy(
-        server,
-        distribution_estimator=estimator,
-        replication_manager=replication_manager,
-    )
+    proxy = Proxy(engine, distribution_estimator=estimator, replication_manager=replication_manager)
     client = Client(proxy)
 
     # 1

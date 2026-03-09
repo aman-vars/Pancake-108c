@@ -15,6 +15,7 @@ import string
 import sys
 
 from proxy import Proxy
+from batch_engine import BatchEngine
 from crypto_utils import prf
 from server import Server
 from client import Client
@@ -35,7 +36,8 @@ def main() -> None:
     assert prf(a) != prf(b)
 
     server = Server()
-    proxy = Proxy(server)
+    engine = BatchEngine(server)
+    proxy = Proxy(engine)
     client = Client(proxy)
 
     n = 1000

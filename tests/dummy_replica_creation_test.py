@@ -11,6 +11,7 @@ import sys
 sys.path.insert(0, ".")
 
 from proxy import Proxy
+from batch_engine import BatchEngine
 from distribution_estimator import DistributionEstimator
 from dummy_replica_manager import DummyReplicaManager
 from replication_manager import ReplicationManager
@@ -32,13 +33,8 @@ def main():
     rm = ReplicationManager(est)
     cache = UpdateCache()
     dummy_mgr = DummyReplicaManager(server, rm)
-    proxy = Proxy(
-        server,
-        distribution_estimator=est,
-        replication_manager=rm,
-        update_cache=cache,
-        dummy_manager=dummy_mgr,
-    )
+    engine = BatchEngine(server, batch_size=1)
+    proxy = Proxy(engine, distribution_estimator=est, replication_manager=rm, update_cache=cache, dummy_manager=dummy_mgr)
     client = Client(proxy)
 
     # 1. Total entries = 2n after each PUT
