@@ -35,7 +35,7 @@ Server (untrusted storage layer)
 - Provides `access(label)` and `write(label, ciphertext)`
 
 Storage
-- In-memory dictionary mapping `label -> ciphertext`
+- Dictionary that maps `label -> ciphertext`
 - Treats all data as opaque bytes
 
 Note that there is no networking layer. Instead, the trusted proxy calls server methods to *mimic* true client-server functionality.
