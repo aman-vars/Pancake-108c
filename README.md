@@ -2,13 +2,7 @@
 
 This project is a research-oriented reimplementation of the Pancake paper in Python. Instead of using a real distributed client–server system (Redis + Thrift), this version *simulates* the cryptographic securities and access-pattern behavior.
 
-Goal Checklist:
-- Build a minimal encrypted key-value database (done)
-- Rebuild Pancake incrementally (done)
-- Benchmark my Pancake implementation
-- Integrate an SDa blackbox extension (optional) 
-- Analyze performance results (optional)
-- Write a report on my process and findings
+**NOTE** that this doesn't incorporate Pancake's access delay functionality. In my implementation, every batch guarantees 1 real access and B-1 fake accesses. The paper's original implementation has more security because batches can have 0, 1, 2, or even 3 real accesses in the batch. I think this leaks some structural information because the server can learn that one batch means one user query. I didn't have time to implement this part of the system.
 
 
 ## Encrypted Key–Value Store
