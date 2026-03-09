@@ -1,8 +1,8 @@
 # batch_engine.py
 """
 Fixed-size batching layer.
-Expands each PUT/GET query into B server accesses.
-1 real + (B-1) padding.
+Expands each PUT/GET query into B server accesses. 1 real + (B-1) padding.
+Also enforces read-then-write formatting to hide batch operation-type.
 """
 
 import os
