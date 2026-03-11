@@ -9,7 +9,7 @@ import os
 import random
 from typing import Optional
 from crypto_utils import LABEL_LENGTH
-from dummy_replica_manager import CIPHERTEXT_LENGTH
+from crypto_utils import encrypt
 
 
 class BatchEngine:
@@ -55,13 +55,13 @@ class BatchEngine:
                 read_results.append((lbl, None, is_real))
 
         # Write to server
-        for lbl, read_ct, is_real in read_results:
+        for lbl, ct, is_real in read_results:
             if is_real:
                 self._server.write(lbl, ciphertext)
             else:
-                if read_ct is None: 
-                    read_ct = os.urandom(CIPHERTEXT_LENGTH)
-                self._server.write(lbl, read_ct)
+                if ct is None: 
+                    ct = encrypt(b"dummy")
+                self._server.write(lbl, ct)
 
     def access(self, label: bytes) -> bytes:
         """
@@ -98,11 +98,11 @@ class BatchEngine:
                 read_results.append((lbl, None))
         if is_real_missing or real_result is None:
             raise KeyError("Label not found.")
-        
-        # Write to mask operation
+
+        # Write to mask operation: reuse ciphertext from the batch so we never introduce new data
         for lbl, ct in read_results:
-            if ct is None: # Fake label miss -> random ciphertext
-                ct = os.urandom(CIPHERTEXT_LENGTH)
+            if ct is None:  # Fake miss: reuse real slot's ciphertext to preserve storage state
+                ct = real_result
             self._server.write(lbl, ct)
-                
+
         return real_result
