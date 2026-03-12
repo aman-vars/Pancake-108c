@@ -8,7 +8,7 @@ the total stays 2n.
 
 import os
 from typing import Dict, Tuple
-from crypto_utils import make_replica_label
+from crypto_utils import make_replica_label, encrypt
 
 DUMMY_KEY = "*DUMMY*"
 CIPHERTEXT_LENGTH = 284 # Match real ciphertext length -> nonce(12) + encrypted_block(256) + tag(16)
@@ -43,7 +43,8 @@ class DummyReplicaManager:
         for i in range(count):
             replica_id = next_id + i
             label = make_replica_label(DUMMY_KEY, replica_id)
-            self._server.write(label, os.urandom(CIPHERTEXT_LENGTH))
+            dummy_ct = encrypt(b"dummy")
+            self._server.write(label, dummy_ct)
             self._dummy_ids.append(replica_id)
 
     def _remove_dummies(self, count: int) -> None:
