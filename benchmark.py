@@ -20,9 +20,9 @@ from fake_distribution import FakeDistributionManager
 from update_cache import UpdateCache
 
 
-NUM_KEYS = 100 # 10k
-NUM_REQUESTS = 200 # 20k
-WARMUP = 20 # 2k
+NUM_KEYS = 1000
+NUM_REQUESTS = 2000
+WARMUP = 200
 BATCH_SIZE = 3
 SKEW = 5
 
