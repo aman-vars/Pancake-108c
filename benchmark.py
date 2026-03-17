@@ -11,6 +11,7 @@ import time
 import random
 
 from client import Client
+from crypto_utils import decrypt, make_replica_label, encrypt
 from proxy import Proxy
 from server import Server
 from batch_engine import BatchEngine
@@ -28,8 +29,36 @@ BATCH_SIZE = 3
 SKEW = 5
 
 
-def setup_system():
-    """Set up full system."""
+
+class Baseline:
+    """Simple encrypted key value store. No pancake"""
+    
+    def __init__(self, server) -> None:
+        self._server = server
+        
+    def put(self, key, value):
+        label = make_replica_label(key, 0)
+        ct = encrypt(value.encode())
+        self._server.write(label, ct)
+        
+    def get(self, key):
+        label = make_replica_label(key, 0)
+        try: 
+            ct = self._server.access(label)
+        except KeyError:
+            return None
+        return decrypt(ct).decode()
+
+
+def setup_baseline():
+    server = Server()
+    client = Client(Baseline(server))
+    return client
+
+
+
+def setup_pancake():
+    """Set up full system for pancake."""
     # Server
     server = Server()
     # Proxy helpers
@@ -99,43 +128,66 @@ def warmup(client, keys):
         client.put(keys[i], f"value_{i}")
 
 
+
 def main():
+    # 1. ekv 
     print()
-    print("Pancake Baseline Benchmark")
+    print(" ==== Encrypted Key Value Benchmark ====")
+    
+    # setup
+    print("Setting up...")
+    b_client = setup_baseline()
+    keys = [f"key_{i}" for i in range(NUM_KEYS)]
+    print("Setup complete")
+    
+    # warmup
+    print("Warming up...")
+    warmup(b_client, keys)
+    print("Warmup complete")
+    
+    # metrics
+    print("Benchmarking PUT...")
+    b_put_xput, b_put_lat = benchmark_put(b_client, keys)
+    print("Benchmarking GET,..")
+    b_get_xput, b_get_lat = benchmark_get(b_client, keys)
     print()
+    
+    
+    # 2. pancake
+    print(" ==== Pancake Baseline Benchmark ==== ")
 
     # setup
     print("Setting up...")
-    client = setup_system()
-    keys = [f"key_{i}" for i in range(NUM_KEYS)]
+    p_client = setup_pancake()
     print("Setup complete")
 
     # warmup
     print("Warming up...")
-    warmup(client, keys)
+    warmup(p_client, keys)
     print("Warmup complete")
-    
-    print()
 
     # metrics
     print("Benchmarking PUT...")
-    put_xput, put_latency = benchmark_put(client, keys)
-
+    p_put_xput, p_put_lat = benchmark_put(p_client, keys)
     print("Benchmarking GET...")
-    get_xput, get_latency = benchmark_get(client, keys)
+    p_get_xput, p_get_lat = benchmark_get(p_client, keys)
 
     print()
     
-    # results
-    print("Results:")
-    print(f"    PUT throughput : {put_xput} req/s")
-    print(f"    PUT latency    : {put_latency} ms")
-
+    # 3. results
+    print("Results for EKV:")
+    print(f"    PUT throughput : {b_put_xput} req/s")
+    print(f"    PUT latency    : {b_put_lat} ms")
     print()
-
-    print(f"    GET throughput : {get_xput} req/s")
-    print(f"    GET latency    : {get_latency} ms")
-
+    print(f"    GET throughput : {b_get_xput} req/s")
+    print(f"    GET latency    : {b_get_lat} ms")
+    print()
+    print("Results for Pancake:")
+    print(f"    PUT throughput : {p_put_xput} req/s")
+    print(f"    PUT latency    : {p_put_lat} ms")
+    print()
+    print(f"    GET throughput : {p_get_xput} req/s")
+    print(f"    GET latency    : {p_get_lat} ms")
     print()
     
     
