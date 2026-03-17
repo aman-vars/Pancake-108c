@@ -1,3 +1,28 @@
+# Running
+
+1. Clone the repository and go to the directory.
+2. Download the requirements in the `requirements.txt`
+3. Run `python benchmark.py` to get the benchmark results.
+
+The `benchmark.py` file has different phases:
+1. Setup
+    - Initializes all of the features needed for Pancake
+2. Warmup
+    - A small number of PUTs are sent to the server to build the server storage.
+    - (not included in the performance metrics)
+3. PUT benchmark
+    - System handles a lot of random PUTs on randomly chosen keys
+    - Measures **xput** and **latency**.
+4. GET benchmark
+    - System handles a lot of random GETs using a skewed key distribution 
+    - A small percent of the workload is accessed in most of the queries to create the skew.
+    - Measures **xput** and **latency**.
+5. Results
+    - Each stage prints its running status
+    - At the end, the script prints the PUT results and GET results.
+
+
+
 # Design Process 
 
 This project is a research-oriented reimplementation of the Pancake paper in Python. Instead of using a real distributed client–server system (Redis + Thrift), this version *simulates* the cryptographic securities and access-pattern behavior.
