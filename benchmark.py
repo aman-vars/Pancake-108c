@@ -7,8 +7,11 @@ Measures:
 - latency (ms/request)
 """
 
+import platform
 import time
 import random
+import matplotlib.pyplot as plt
+from numpy import blackman
 
 from client import Client
 from crypto_utils import decrypt, make_replica_label, encrypt
@@ -171,8 +174,8 @@ def main():
     p_put_xput, p_put_lat = benchmark_put(p_client, keys)
     print("Benchmarking GET...")
     p_get_xput, p_get_lat = benchmark_get(p_client, keys)
-
     print()
+    
     
     # 3. results
     print("Results for EKV:")
@@ -191,7 +194,45 @@ def main():
     print()
     
     
-    
+    # 4. graphs
+    print("Generating Comparison graphs...")
+    workloads = ["PUT", "GET"]
+    x = list(range(len(workloads)))
+    width = 0.25
 
+    # 2 side by side graphs
+    b_xput = [b_put_xput, b_get_xput]
+    p_xput = [p_put_xput, p_get_xput]
+    b_lat = [b_put_lat, b_get_lat]
+    p_lat = [p_put_lat, p_get_lat]
+    plt.figure()
+
+    # xput
+    plt.subplot(1, 2, 1)
+    plt.bar([i-width/2 for i in x], b_xput, width, label="EKV")
+    plt.bar([i+width/2 for i in x], p_xput, width, label="Pancake")
+    plt.xticks(x, workloads)
+    plt.ylabel("Throughput (req/s)")
+    plt.title("Throughput")
+    plt.legend()
+    plt.yscale("log") # to make both pancake and ekv bars visible
+
+    # lat
+    plt.subplot(1, 2, 2)
+    plt.bar([i-width/2 for i in x], b_lat, width, label="EKV")
+    plt.bar([i+width/2 for i in x], p_lat, width, label="Pancake")
+    plt.xticks(x, workloads)
+    plt.ylabel("Latency (ms)")
+    plt.title("Latency")
+    plt.legend()
+    plt.yscale("log")
+
+    print("Generated in popup.")
+    plt.show()
+    print("Done.")
+        
+        
+        
+        
 if __name__ == "__main__":
     main()
