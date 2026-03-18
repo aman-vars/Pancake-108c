@@ -4,22 +4,24 @@
 2. Download the requirements in the `requirements.txt`
 3. Run `python benchmark.py` to get the benchmark results.
 
-The `benchmark.py` file has different phases:
+The `benchmark.py` file compares the basic encrypted key value storage system with the encrypted system using my Pancake setup. Its phases are:
 1. Setup
+    - Initializes the class for an Encrypted Key Value store with leakage.
     - Initializes all of the features needed for Pancake
 2. Warmup
     - A small number of PUTs are sent to the server to build the server storage.
     - (not included in the performance metrics)
 3. PUT benchmark
     - System handles a lot of random PUTs on randomly chosen keys
-    - Measures **xput** and **latency**.
+    - Measures **throughput** and **latency**.
 4. GET benchmark
-    - System handles a lot of random GETs using a skewed key distribution 
+    - System handles a lot of random GETs using a skewed key distribution
     - A small percent of the workload is accessed in most of the queries to create the skew.
-    - Measures **xput** and **latency**.
+    - Measures **throughput** and **latency**.
 5. Results
     - Each stage prints its running status
-    - At the end, the script prints the PUT results and GET results.
+    - At the end, the script prints the PUT results and GET results for the encrypted key value storage and the pancake storage system.
+    - Using the performance metrics, it plots a comparison bar graph in a separate popup tab.
 
 
 
